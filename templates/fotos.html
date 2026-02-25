@@ -26,11 +26,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="foto" class="file-label">
-                        <span class="file-button">📁 Seleccionar Foto</span>
-                        <span id="fileName" class="file-name">Ningún archivo seleccionado</span>
-                    </label>
-                    <input type="file" id="foto" name="foto" accept="image/*" required>
+                    <label for="foto">Seleccionar foto</label>
+                    <input type="file" id="foto" name="foto" accept="image/*" class="file-input-visible" required>
+                    <small id="fileName" class="file-hint">Podés elegir de tu galería o tomar una foto</small>
                 </div>
 
                 <button type="submit" class="btn-primary" id="uploadBtn">
@@ -109,35 +107,36 @@
     border-color: #d4af37;
 }
 
-.form-group input[type="file"] {
-    display: none;
-}
-
-.file-label {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    cursor: pointer;
-}
-
-.file-button {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background: #f0f0f0;
-    border: 2px solid #d0d0d0;
+.file-input-visible {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: white;
+}
+
+.file-input-visible::-webkit-file-upload-button {
+    padding: 0.5rem 1rem;
+    background: #d4af37;
+    color: white;
+    border: none;
+    border-radius: 6px;
     font-weight: 600;
-    transition: all 0.3s;
+    cursor: pointer;
+    margin-right: 1rem;
 }
 
-.file-button:hover {
-    background: #e0e0e0;
-    border-color: #d4af37;
+.file-input-visible::-webkit-file-upload-button:hover {
+    background: #c49f2f;
 }
 
-.file-name {
+.file-hint {
+    display: block;
     color: #666;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
 }
 
 .btn-primary, .btn-secondary {
@@ -242,7 +241,7 @@
 {% block scripts %}
 <script>
 document.getElementById('foto').addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || 'Ningún archivo seleccionado';
+    const fileName = e.target.files[0]?.name || 'Podés elegir de tu galería o tomar una foto';
     document.getElementById('fileName').textContent = fileName;
 });
 
