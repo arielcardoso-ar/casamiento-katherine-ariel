@@ -400,52 +400,59 @@ def api_get_fotos():
 @app.route('/api/fotos/upload', methods=['POST'])
 def api_upload_foto():
     """API para subir una foto"""
-    if 'foto' not in request.files:
-        return jsonify({'success': False, 'message': 'No se envió ninguna foto'}), 400
+    try:
+        if 'foto' not in request.files:
+            return jsonify({'success': False, 'message': 'No se envió ninguna foto'}), 400
+        
+        file = request.files['foto']
+        
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No se seleccionó ningún archivo'}), 400
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            nombre_archivo = f"{timestamp}_{filename}"
+            
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], nombre_archivo)
+            file.save(filepath)
+            
+            try:
+                img = Image.open(filepath)
+                img.thumbnail((300, 300))
+                thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails', nombre_archivo)
+                img.save(thumbnail_path)
+                thumbnail_rel = f"uploads/thumbnails/{nombre_archivo}"
+            except Exception as e:
+                print(f"Error creando thumbnail: {e}")
+                thumbnail_rel = f"uploads/{nombre_archivo}"
+            
+            subido_por = request.form.get('nombre', 'Invitado')
+            descripcion = request.form.get('descripcion', '')
+            
+            foto_id = db.agregar_foto({
+                'nombre_archivo': nombre_archivo,
+                'nombre_original': file.filename,
+                'ruta': f"uploads/{nombre_archivo}",
+                'thumbnail': thumbnail_rel,
+                'subido_por': subido_por,
+                'descripcion': descripcion
+            })
+            
+            return jsonify({
+                'success': True,
+                'message': 'Foto subida correctamente',
+                'id': foto_id,
+                'filename': nombre_archivo
+            })
+        
+        return jsonify({'success': False, 'message': 'Tipo de archivo no permitido'}), 400
     
-    file = request.files['foto']
-    
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No se seleccionó ningún archivo'}), 400
-    
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        nombre_archivo = f"{timestamp}_{filename}"
-        
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], nombre_archivo)
-        file.save(filepath)
-        
-        try:
-            img = Image.open(filepath)
-            img.thumbnail((300, 300))
-            thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails', nombre_archivo)
-            img.save(thumbnail_path)
-            thumbnail_rel = f"uploads/thumbnails/{nombre_archivo}"
-        except Exception as e:
-            print(f"Error creando thumbnail: {e}")
-            thumbnail_rel = f"uploads/{nombre_archivo}"
-        
-        subido_por = request.form.get('nombre', 'Invitado')
-        descripcion = request.form.get('descripcion', '')
-        
-        foto_id = db.agregar_foto({
-            'nombre_archivo': nombre_archivo,
-            'nombre_original': file.filename,
-            'ruta': f"uploads/{nombre_archivo}",
-            'thumbnail': thumbnail_rel,
-            'subido_por': subido_por,
-            'descripcion': descripcion
-        })
-        
-        return jsonify({
-            'success': True,
-            'message': 'Foto subida correctamente',
-            'id': foto_id,
-            'filename': nombre_archivo
-        })
-    
-    return jsonify({'success': False, 'message': 'Tipo de archivo no permitido'}), 400
+    except Exception as e:
+        print(f"Error en upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Error al subir foto: {str(e)}'}), 500
 
 @app.route('/api/fotos/<int:foto_id>', methods=['DELETE'])
 def api_eliminar_foto(foto_id):
