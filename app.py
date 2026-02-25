@@ -418,10 +418,17 @@ def api_upload_foto():
             file.save(filepath)
             
             try:
+                # Comprimir y redimensionar imagen original
                 img = Image.open(filepath)
-                img.thumbnail((300, 300))
+                
+                # Redimensionar imagen principal (max 1200px)
+                img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+                img.save(filepath, optimize=True, quality=85)
+                
+                # Crear thumbnail pequeño
+                img.thumbnail((300, 300), Image.Resampling.LANCZOS)
                 thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails', nombre_archivo)
-                img.save(thumbnail_path)
+                img.save(thumbnail_path, optimize=True, quality=80)
                 thumbnail_rel = f"uploads/thumbnails/{nombre_archivo}"
             except Exception as e:
                 print(f"Error creando thumbnail: {e}")
