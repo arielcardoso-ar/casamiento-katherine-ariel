@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>📅 Timeline de Tareas</h1>
+        <p>Planificación mes a mes hasta el 19 de Diciembre 2026</p>
+    </div>
+
+    <div class="timeline-container">
+        {% for tarea in timeline %}
+        <div class="timeline-item timeline-{{ tarea.prioridad.lower() }}">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+                <div class="timeline-header">
+                    <span class="timeline-date">{{ tarea.fecha }}</span>
+                    <span class="priority-badge priority-{{ tarea.prioridad.lower() }}">
+                        {{ tarea.prioridad }}
+                    </span>
+                </div>
+                <div class="timeline-body">
+                    <h3>{{ tarea.tarea }}</h3>
+                    <div class="timeline-status">
+                        <label class="checkbox-label">
+                            <input type="checkbox" 
+                                   data-tarea="{{ loop.index }}"
+                                   {% if tarea.estado == 'completado' %}checked{% endif %}>
+                            <span>Marcar como completada</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Resumen por Prioridad -->
+    <div class="priority-summary">
+        <h3>📊 Resumen por Prioridad</h3>
+        <div class="priority-cards">
+            <div class="priority-card urgent">
+                <h4>🔴 URGENTE</h4>
+                <p class="priority-count">
+                    {% set urgentes = timeline | selectattr('prioridad', 'equalto', 'URGENTE') | list | length %}
+                    {{ urgentes }} tareas
+                </p>
+                <p class="priority-desc">Contactar esta semana</p>
+            </div>
+            <div class="priority-card high">
+                <h4>🟠 ALTA</h4>
+                <p class="priority-count">
+                    {% set altas = timeline | selectattr('prioridad', 'equalto', 'ALTA') | list | length %}
+                    {{ altas }} tareas
+                </p>
+                <p class="priority-desc">Próximas 2-4 semanas</p>
+            </div>
+            <div class="priority-card medium">
+                <h4>🟡 MEDIA</h4>
+                <p class="priority-count">
+                    {% set medias = timeline | selectattr('prioridad', 'equalto', 'MEDIA') | list | length %}
+                    {{ medias }} tareas
+                </p>
+                <p class="priority-desc">Pueden esperar un poco</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tareas Urgentes Destacadas -->
+    <div class="urgent-tasks">
+        <h3>🚨 Tareas Urgentes de Febrero 2026</h3>
+        <div class="urgent-list">
+            <div class="urgent-item">
+                <span class="urgent-icon">⛪</span>
+                <div>
+                    <h4>Contactar Basílica de Lourdes</h4>
+                    <p>📞 011 4757-2130 | Reservar fecha 19/12/2026</p>
+                </div>
+            </div>
+            <div class="urgent-item">
+                <span class="urgent-icon">🏛️</span>
+                <div>
+                    <h4>Cotizar y Reservar Salón</h4>
+                    <p>📱 Tomate: 11-7226-9510 | Tachwüll: tachwull.com</p>
+                </div>
+            </div>
+            <div class="urgent-item">
+                <span class="urgent-icon">📄</span>
+                <div>
+                    <h4>Solicitar Partidas de Bautismo</h4>
+                    <p>Deben ser recientes (menos de 6 meses)</p>
+                </div>
+            </div>
+            <div class="urgent-item">
+                <span class="urgent-icon">📚</span>
+                <div>
+                    <h4>Inscribirse Curso Pre-Matrimonial</h4>
+                    <p>Obligatorio - 4-6 encuentros</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Guardar estado de checkboxes en localStorage
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    const tareaId = checkbox.dataset.tarea;
+    const saved = localStorage.getItem('tarea_' + tareaId);
+    if (saved === 'true') {
+        checkbox.checked = true;
+    }
+    
+    checkbox.addEventListener('change', function() {
+        localStorage.setItem('tarea_' + tareaId, this.checked);
+    });
+});
+</script>
+{% endblock %}

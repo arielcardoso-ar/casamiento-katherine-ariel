@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="hero-section">
+        <h1 class="hero-title">🎉 Nuestro Casamiento</h1>
+        <div class="countdown-container">
+            <div class="countdown-box">
+                <div class="countdown-number">{{ dias_restantes }}</div>
+                <div class="countdown-label">días restantes</div>
+            </div>
+        </div>
+        <p class="hero-date">19 de Diciembre de 2026</p>
+        <p class="hero-location">⛪ Basílica Nuestra Señora de Lourdes, Santos Lugares</p>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Basílica+Nuestra+Señora+de+Lourdes+Av+La+Plata+3757+Santos+Lugares" 
+               target="_blank" class="btn btn-primary">
+                📍 Ubicación de la Ceremonia
+            </a>
+            <a href="/mapa" class="btn btn-secondary">
+                🗺️ Ver Salones en Mapa
+            </a>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <!-- Card Novios -->
+        <div class="card">
+            <div class="card-header">
+                <h3>👰 Novia</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ wedding.novia.nombre }}</strong></p>
+                <p>DNI: {{ wedding.novia.dni }}</p>
+                <p>📱 {{ wedding.novia.telefono }}</p>
+                <p>📧 {{ wedding.novia.email }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>🤵 Novio</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ wedding.novio.nombre }}</strong></p>
+                <p>DNI: {{ wedding.novio.dni }}</p>
+                <p>📱 {{ wedding.novio.telefono }}</p>
+                <p>📧 {{ wedding.novio.email }}</p>
+            </div>
+        </div>
+
+        <!-- Card Ceremonia -->
+        <div class="card">
+            <div class="card-header">
+                <h3>⛪ Ceremonia</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ wedding.ceremonia.lugar }}</strong></p>
+                <p>📍 {{ wedding.ceremonia.direccion }}</p>
+                <p>📞 {{ wedding.ceremonia.telefono }}</p>
+                <p>🌐 {{ wedding.ceremonia.web }}</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=Basílica+Nuestra+Señora+de+Lourdes+Av+La+Plata+3757+Santos+Lugares" 
+                   target="_blank" class="btn btn-primary" style="margin-top: 1rem;">
+                    📍 Ver en Google Maps
+                </a>
+            </div>
+        </div>
+
+        <!-- Card Presupuesto -->
+        <div class="card card-highlight">
+            <div class="card-header">
+                <h3>💰 Presupuesto</h3>
+            </div>
+            <div class="card-body">
+                <div class="budget-total">
+                    <p class="budget-label">Presupuesto Total</p>
+                    <p class="budget-amount">${{ "{:,.0f}".format(wedding.presupuesto_total) }}</p>
+                </div>
+                <div class="budget-detail">
+                    <p>Estimado: ${{ "{:,.0f}".format(total_estimado) }}</p>
+                    <p>Disponible: ${{ "{:,.0f}".format(wedding.presupuesto_total - total_estimado) }}</p>
+                </div>
+                <a href="/presupuesto" class="btn btn-primary">Ver Detalle</a>
+            </div>
+        </div>
+
+        <!-- Card Invitados -->
+        <div class="card">
+            <div class="card-header">
+                <h3>👥 Invitados</h3>
+            </div>
+            <div class="card-body">
+                <div class="stat-number">{{ wedding.invitados }}</div>
+                <p class="stat-label">personas invitadas</p>
+                <a href="/invitados" class="btn btn-secondary">Gestionar Lista</a>
+            </div>
+        </div>
+
+        <!-- Card Tareas Urgentes -->
+        <div class="card card-urgent">
+            <div class="card-header">
+                <h3>🚨 Tareas Urgentes</h3>
+            </div>
+            <div class="card-body">
+                <ul class="task-list">
+                    <li>✓ Contactar Basílica para reservar fecha</li>
+                    <li>✓ Cotizar salones (Tomate, Tachwüll, Botánico)</li>
+                    <li>✓ Solicitar partidas de bautismo</li>
+                    <li>✓ Inscribirse curso pre-matrimonial</li>
+                </ul>
+                <a href="/timeline" class="btn btn-warning">Ver Timeline Completo</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Proveedores Destacados -->
+    <div class="section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 class="section-title" style="margin: 0;">⭐ Proveedores Recomendados</h2>
+            <a href="/mapa" class="btn btn-primary">🗺️ Ver en Mapa</a>
+        </div>
+        <div class="providers-grid">
+            <div class="provider-card">
+                <div class="provider-badge">MEJOR PRECIO</div>
+                <h4>Tomate Palermo</h4>
+                <p class="provider-price">$500.000 - $1.200.000</p>
+                <p class="provider-detail">TODO INCLUIDO</p>
+                <p>📱 11-7226-9510</p>
+                <a href="/proveedores" class="btn btn-sm">Ver Más</a>
+            </div>
+            <div class="provider-card">
+                <div class="provider-badge">MÁS CERCA</div>
+                <h4>Tachwüll</h4>
+                <p class="provider-price">$1.500.000 - $2.000.000</p>
+                <p class="provider-detail">20-25 min de la Basílica</p>
+                <p>🌐 tachwull.com</p>
+                <a href="/proveedores" class="btn btn-sm">Ver Más</a>
+            </div>
+            <div class="provider-card">
+                <div class="provider-badge">ELEGANTE</div>
+                <h4>Augusto & Ros</h4>
+                <p class="provider-price">$1.500.000 - $2.500.000</p>
+                <p class="provider-detail">Casona francesa premium</p>
+                <p>📞 011-4702-9752</p>
+                <a href="/proveedores" class="btn btn-sm">Ver Más</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

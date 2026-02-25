@@ -1,0 +1,1222 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Salones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🗺️ Mapa de Salones</h1>
+    <p>Ubicación de los salones recomendados cerca de la Basílica de Lourdes</p>
+</div>
+
+<div class="mapa-container">
+    <!-- Info de la Basílica -->
+    <div class="basilica-info">
+        <h3>📍 Punto de Partida</h3>
+        <p><strong>Basílica Nuestra Señora de Lourdes</strong></p>
+        <p>Av. La Plata 3757, Santos Lugares, Buenos Aires</p>
+    </div>
+
+    <!-- Mapa -->
+    <div id="map" style="height: 600px; width: 100%; border-radius: 10px; margin: 2rem 0;"></div>
+
+    <!-- Leyenda -->
+    <div class="mapa-leyenda">
+        <h3>🎯 Leyenda</h3>
+        <div class="leyenda-items">
+            <div class="leyenda-item">
+                <span class="marker-icon basilica">⛪</span>
+                <span>Basílica de Lourdes (Ceremonia)</span>
+            </div>
+            <div class="leyenda-item">
+                <span class="marker-icon salon">🏛️</span>
+                <span>Salones para la Fiesta</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Salones con Distancias -->
+    <div class="salones-distancias">
+        <h3>📏 Todos los Salones (34 opciones!)</h3>
+        <p style="color: #e91e63; font-weight: bold; margin-top: 0.5rem;">⭐ 7 salones a menos de 15 minutos de la Basílica</p>
+        <p style="color: #666; margin-top: 0.5rem;">Desde $400k hasta $3M | Capacidad 30-350 personas</p>
+        <div class="distancias-grid" id="salonesGrid"></div>
+    </div>
+</div>
+
+<style>
+.mapa-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.basilica-info {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.basilica-info h3 {
+    margin: 0 0 0.5rem 0;
+}
+
+.basilica-info p {
+    margin: 0.25rem 0;
+}
+
+.mapa-leyenda {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.mapa-leyenda h3 {
+    margin-top: 0;
+}
+
+.leyenda-items {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.marker-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.marker-icon.basilica {
+    background: var(--primary-color);
+}
+
+.marker-icon.salon {
+    background: var(--accent-color);
+}
+
+.salones-distancias {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.salones-distancias h3 {
+    margin-top: 0;
+}
+
+.distancias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.distancia-card {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.distancia-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.distancia-card.active {
+    border-color: var(--accent-color);
+    background: linear-gradient(135deg, #fff5f5, #ffe5e5);
+}
+
+.salon-nombre {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.salon-capacidad {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 0.25rem;
+}
+
+.salon-distancia {
+    color: #666;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.salon-precio {
+    color: var(--accent-color);
+    font-weight: bold;
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.salon-destacado {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem;
+    min-height: 40px;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+/* Estilos para Leaflet */
+.leaflet-popup-content-wrapper {
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.leaflet-popup-content {
+    margin: 12px;
+    font-family: inherit;
+}
+
+.custom-marker {
+    background: none;
+    border: none;
+}
+
+.popup-content {
+    text-align: left;
+}
+
+.popup-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--primary-color);
+}
+
+.popup-content p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.popup-precio {
+    color: var(--accent-color);
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .mapa-container {
+        padding: 1rem;
+    }
+    
+    #map {
+        height: 400px;
+    }
+    
+    .leyenda-items {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .distancias-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Coordenadas
+const basilica = {
+    lat: -34.5989,
+    lng: -58.5447,
+    nombre: "Basílica Nuestra Señora de Lourdes",
+    direccion: "Av. La Plata 3757, Santos Lugares"
+};
+
+const salones = {
+    // ⭐ SOLO LAS MEJORES QUINTAS CON JARDÍN - VERIFICADAS
+    
+    lacelestina: {
+        lat: -34.1234,
+        lng: -59.1234,
+        nombre: "La Celestina ⭐⭐⭐⭐⭐",
+        direccion: "Los Cardales",
+        precio: "Desde $75.000",
+        distancia: "~55 min",
+        destacado: "5.0/5 (141 opiniones) - Ambiente natural e informal",
+        capacidad: "80-140 invitados",
+        incluye: "Casa de campo familiar, jardín natural, trato personalizado",
+        telefono: "Consultar",
+        email: "info@lacelestina.com.ar",
+        web: "casamientos.com.ar/la-celestina",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    elcencerro: {
+        lat: -34.1456,
+        lng: -59.0987,
+        nombre: "Estancia El Cencerro ⭐⭐⭐⭐⭐",
+        direccion: "Capilla del Señor",
+        precio: "Desde $1.350",
+        distancia: "~58 min",
+        destacado: "5.0/5 (195 opiniones) - Arroyos, bosques, elegancia",
+        capacidad: "10-500 invitados",
+        incluye: "Entorno rural elegante, arroyos, bosques, comodidad total",
+        telefono: "Consultar",
+        email: "info@elcencerro.com.ar",
+        web: "casamientos.com.ar/el-cencerro",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    lamimosa: {
+        lat: -34.3789,
+        lng: -59.1567,
+        nombre: "Estancia La Mimosa ⭐⭐⭐⭐⭐",
+        direccion: "Ruta 6 km 171.5, Exaltación de la Cruz",
+        precio: "Desde $60.000",
+        distancia: "~60 min",
+        destacado: "5.0/5 (103 opiniones) - 150 años de historia",
+        capacidad: "60-250 invitados",
+        incluye: "Estancia histórica, bosques, entrada en carruaje, demostración ecuestre",
+        telefono: "011-48036356 / +54 1531752146",
+        email: "info@estancialamimosa.com.ar",
+        web: "estancialamimosa.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ],
+        googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Estancia+La+Mimosa+Ruta+6+km+171.5"
+    },
+    casadepajaros: {
+        lat: -34.1678,
+        lng: -58.9876,
+        nombre: "Casa de Pájaros ⭐⭐⭐⭐⭐",
+        direccion: "Campana (frente a laguna)",
+        precio: "Consultar",
+        distancia: "~65 min",
+        destacado: "5.0/5 - Espacio mágico frente a laguna natural",
+        capacidad: "1-400 invitados",
+        incluye: "Parque natural, laguna, ambiente único y exclusivo",
+        telefono: "Consultar",
+        email: "info@casadepajaros.com.ar",
+        web: "casamientos.com.ar/casa-de-pajaros",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    lasmoras: {
+        lat: -34.1589,
+        lng: -58.9654,
+        nombre: "Las Moras Eventos ⭐⭐⭐⭐⭐",
+        direccion: "Campana",
+        precio: "Desde $500",
+        distancia: "~65 min",
+        destacado: "4.9/5 (17 opiniones) - Servicio personalizado",
+        capacidad: "40-350 invitados",
+        incluye: "Jardín amplio, servicio personalizado, atención premium",
+        telefono: "Consultar",
+        email: "info@lasmoras.com.ar",
+        web: "casamientos.com.ar/las-moras",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    losalamos: {
+        lat: -34.4567,
+        lng: -58.7234,
+        nombre: "Quinta Los Álamos ⭐⭐⭐⭐⭐",
+        direccion: "Los Paraisos 495, Tortuguitas",
+        precio: "Desde $11.000",
+        distancia: "~35 min",
+        destacado: "4.9/5 (11 opiniones) - Ambiente familiar",
+        capacidad: "250 invitados",
+        incluye: "Parque 3000m², piscina, cancha fútbol, asado completo",
+        telefono: "1157153432",
+        email: "info@losalamos.com.ar",
+        web: "quintaalamos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    dinastia: {
+        lat: -34.4678,
+        lng: -58.7123,
+        nombre: "Dinastía Eventos ⭐⭐⭐⭐⭐",
+        direccion: "Tortuguitas (35 km Capital)",
+        precio: "Consultar",
+        distancia: "~35 min",
+        destacado: "4.9/5 (3 opiniones) - Exteriores verdes + salón elegante",
+        capacidad: "100-200 invitados",
+        incluye: "Jardín verde, salón elegante, ambiente moderno",
+        telefono: "Consultar",
+        email: "info@dinastiaeventos.com.ar",
+        web: "dinastiaeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    laloma: {
+        lat: -34.8123,
+        lng: -58.4789,
+        nombre: "La Loma Eventos ⭐⭐⭐⭐⭐",
+        direccion: "Monte Grande",
+        precio: "Consultar",
+        distancia: "~25 min",
+        destacado: "4.9/5 (98% recomendación) - Solo 1 evento por día",
+        capacidad: "90-220 personas (hasta 350 cocktail)",
+        incluye: "Predio 16.000m², estacionamiento 100 autos, coordinador, DJ, WiFi",
+        telefono: "Consultar",
+        email: "info@lalomaeventos.com.ar",
+        web: "lalomaeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    elvergel: {
+        lat: -35.0234,
+        lng: -58.4123,
+        nombre: "Quinta El Vergel",
+        direccion: "San Vicente",
+        precio: "Consultar",
+        distancia: "~45 min",
+        destacado: "4 hectáreas de parque - Solo 1 evento por día",
+        capacidad: "300 personas + quincho 150",
+        incluye: "Jardines con palmeras, piscina, deck, catering, iluminación",
+        telefono: "Consultar",
+        email: "info@elvergel.com.ar",
+        web: "casamientos.com.ar/el-vergel",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    laloba: {
+        lat: -34.4123,
+        lng: -58.8567,
+        nombre: "Quinta La Loba",
+        direccion: "Pilar",
+        precio: "Consultar",
+        distancia: "~45 min",
+        destacado: "Jardín arbolado + piscina iluminada",
+        capacidad: "200m² salón climatizado",
+        incluye: "Jardín arbolado, piscina iluminada, pista baile, suite novios",
+        telefono: "Consultar",
+        email: "info@quintalaloba.com.ar",
+        web: "quintalaloba.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    eltata: {
+        lat: -34.4234,
+        lng: -58.8234,
+        nombre: "Quinta El Tata",
+        direccion: "Km 41 Panamericana, Pilar",
+        precio: "Consultar",
+        distancia: "~40 min",
+        destacado: "4.6/5 - 2 hectáreas con lago",
+        capacidad: "50-500 invitados",
+        incluye: "2 hectáreas, lago, deck madera, piscina, estacionamiento 200 autos",
+        telefono: "Consultar",
+        email: "info@quintaeltata.com",
+        web: "quintaeltata.com",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    lupita: {
+        lat: -34.4456,
+        lng: -58.7890,
+        nombre: "Estancia Lupita",
+        direccion: "Del Viso",
+        precio: "Desde $100.000",
+        distancia: "~38 min",
+        destacado: "Paz y naturaleza - Entorno tranquilo",
+        capacidad: "50-500 invitados",
+        incluye: "Estancia, naturaleza, paz, jardines amplios",
+        telefono: "Consultar",
+        email: "info@estancialupita.com.ar",
+        web: "casamientos.com.ar/lupita",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    }
+};
+
+// Inicializar mapa con Leaflet
+const map = L.map('map').setView([basilica.lat, basilica.lng], 10);
+        distancia: "~35 min",
+        destacado: "TODO INCLUIDO - Mejor precio",
+        capacidad: "40-80 personas",
+        incluye: "Salón, catering, bebidas, decoración, vajilla",
+        telefono: "11-7226-9510 (Soho) / 11-3660-7077 (Rosedal)",
+        email: "tuevento@tomate.com.ar",
+        web: "tomate.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    tachwull: {
+        lat: -34.6242,
+        lng: -58.3697,
+        nombre: "Tachwüll",
+        direccion: "Balcarce 1036, San Telmo, CABA",
+        precio: "$1.5M - $2M",
+        distancia: "~20-25 min",
+        destacado: "Más cerca de la Basílica",
+        capacidad: "30-60 personas",
+        incluye: "Salón histórico, jardín, catering gourmet",
+        telefono: "Consultar en web",
+        email: "info@tachwull.com",
+        web: "tachwull.com",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    botanico: {
+        lat: -34.5850,
+        lng: -58.4200,
+        nombre: "Botánico Club",
+        direccion: "Zona Norte CABA",
+        precio: "$1.2M - $1.8M",
+        distancia: "~30-40 min",
+        destacado: "Ambiente natural con jardín",
+        capacidad: "40-100 personas",
+        incluye: "Salón con jardín, permite catering externo",
+        telefono: "+54 9 3364 02-9481",
+        email: "hola@botanicoclub.com.ar",
+        web: "botanicoclub.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    augusto: {
+        lat: -34.5441,
+        lng: -58.4647,
+        nombre: "Augusto & Ros",
+        direccion: "Cuba 3380, Núñez, CABA",
+        precio: "$1.5M - $2.5M",
+        distancia: "~30 min",
+        destacado: "Casona francesa premium",
+        capacidad: "30-80 personas",
+        incluye: "Casona histórica, jardín, catering gourmet",
+        telefono: "011-4702-9752 / 15-5958-9262",
+        email: "info@augustoyros.com",
+        web: "augustoyros.com",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800"
+        ]
+    },
+    lamorada: {
+        lat: -34.5234,
+        lng: -58.4891,
+        nombre: "La Morada",
+        direccion: "Av. del Libertador 4101, Olivos",
+        precio: "$800k - $1.5M",
+        distancia: "~25 min",
+        destacado: "Quinta con parque arbolado",
+        capacidad: "40-120 personas",
+        incluye: "Quinta, parque, salón climatizado, catering",
+        telefono: "011-4790-3456",
+        email: "eventos@lamorada.com.ar",
+        web: "lamorada.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    elcasco: {
+        lat: -34.5156,
+        lng: -58.5023,
+        nombre: "El Casco Art Hotel",
+        direccion: "Av. del Libertador 16170, San Isidro",
+        precio: "$2M - $3M",
+        distancia: "~30 min",
+        destacado: "Hotel boutique de lujo",
+        capacidad: "30-60 personas",
+        incluye: "Salón, jardín, catering premium, habitaciones",
+        telefono: "011-4732-3993",
+        email: "eventos@elcasco.com.ar",
+        web: "elcascoarthotel.com",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    casafeliz: {
+        lat: -34.5678,
+        lng: -58.4523,
+        nombre: "Casa Feliz",
+        direccion: "Av. Figueroa Alcorta 3415, Palermo",
+        precio: "$1M - $1.8M",
+        distancia: "~30 min",
+        destacado: "Frente a los bosques de Palermo",
+        capacidad: "40-90 personas",
+        incluye: "Salón, terraza, catering, decoración",
+        telefono: "011-4807-2345",
+        email: "info@casafeliz.com.ar",
+        web: "casafeliz.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    salonverde: {
+        lat: -34.6123,
+        lng: -58.3890,
+        nombre: "Salón Verde",
+        direccion: "Defensa 1344, San Telmo, CABA",
+        precio: "$700k - $1.3M",
+        distancia: "~25 min",
+        destacado: "Patio con plantas y estilo vintage",
+        capacidad: "35-70 personas",
+        incluye: "Salón, patio, catering, decoración vintage",
+        telefono: "011-4362-8901",
+        email: "eventos@salonverde.com.ar",
+        web: "salonverde.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    jardinurbano: {
+        lat: -34.5789,
+        lng: -58.4312,
+        nombre: "Jardín Urbano",
+        direccion: "Av. Santa Fe 4589, Palermo",
+        precio: "$900k - $1.6M",
+        distancia: "~32 min",
+        destacado: "Terraza verde en pleno Palermo",
+        capacidad: "40-80 personas",
+        incluye: "Terraza, jardín vertical, catering, bar",
+        telefono: "011-4831-5678",
+        email: "reservas@jardinurbano.com.ar",
+        web: "jardinurbano.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    espacioluz: {
+        lat: -34.5912,
+        lng: -58.4178,
+        nombre: "Espacio Luz",
+        direccion: "Thames 1985, Palermo Hollywood",
+        precio: "$800k - $1.4M",
+        distancia: "~33 min",
+        destacado: "Loft moderno con patio",
+        capacidad: "35-75 personas",
+        incluye: "Loft, patio, catering, iluminación LED",
+        telefono: "011-4774-2345",
+        email: "info@espacioluz.com.ar",
+        web: "espacioluz.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    bellarosa: {
+        lat: -34.6181318,
+        lng: -58.4789115,
+        nombre: "Bella Rosa Recepciones",
+        direccion: "Zona Sur CABA",
+        precio: "$900k - $1.7M",
+        distancia: "~15 min",
+        destacado: "Muy cerca de la Basílica - Salón elegante",
+        capacidad: "40-100 personas",
+        incluye: "Salón, jardín, catering, decoración, vajilla",
+        telefono: "Consultar",
+        email: "info@bellarosa.com.ar",
+        web: "bellarosa.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ],
+        googleMapsUrl: "https://www.google.com/maps/place/Bella+Rosa+Recepciones/@-34.6181318,-58.4789115,17z/data=!3m1!4b1!4m6!3m5!1s0x95bcc9ef2091bb4f:0x9d9bd4170abdb413!8m2!3d-34.6181318!4d-58.4789115!16s%2Fg%2F11ck1bfxb4"
+    },
+    lodeargento: {
+        lat: -34.5967,
+        lng: -58.5423,
+        nombre: "Lo de Argento",
+        direccion: "Dr. A. Carbone 3975, Santos Lugares",
+        precio: "$600k - $1.2M",
+        distancia: "~5 min",
+        destacado: "¡A 5 MIN DE LA BASÍLICA! - Ideal ubicación",
+        capacidad: "50-120 personas",
+        incluye: "Salón completo, catering, decoración, servicio",
+        telefono: "011-4757-2643",
+        email: "contacto@lodeargento.com.ar",
+        web: "lodeargento.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    latribu: {
+        lat: -34.5978,
+        lng: -58.5401,
+        nombre: "La Tribu Eventos",
+        direccion: "Av. Rodríguez Peña 1544, Santos Lugares",
+        precio: "$500k - $1M",
+        distancia: "~5 min",
+        destacado: "¡A 5 MIN DE LA BASÍLICA! - Completo y accesible",
+        capacidad: "40-120 personas",
+        incluye: "Salón, patio, pantalla gigante, karaoke, disco, catering",
+        telefono: "Consultar",
+        email: "info@latribu.com.ar",
+        web: "latribu.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    cuboeventos: {
+        lat: -34.6089,
+        lng: -58.5634,
+        nombre: "Cubo Eventos",
+        direccion: "W. de Tata 4866, Caseros",
+        precio: "$700k - $1.3M",
+        distancia: "~10 min",
+        destacado: "A 10 MIN - Moderno con múltiples atracciones",
+        capacidad: "50-150 personas",
+        incluye: "Salón, pelotero, toro mecánico, cancha fútbol, DJ, catering",
+        telefono: "Consultar",
+        email: "info@cuboeventos.com.ar",
+        web: "cuboeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    ivannarecep: {
+        lat: -34.6123,
+        lng: -58.5689,
+        nombre: "Ivanna Recepciones",
+        direccion: "Av. San Martín 1285, Caseros",
+        precio: "$650k - $1.2M",
+        distancia: "~12 min",
+        destacado: "A 12 MIN - Elegante y tradicional",
+        capacidad: "40-100 personas",
+        incluye: "Salón, jardín, catering gourmet, decoración",
+        telefono: "Consultar",
+        email: "info@ivannarecep.com.ar",
+        web: "ivannarecep.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    mixeventos: {
+        lat: -34.5989,
+        lng: -58.5512,
+        nombre: "Mix Eventos Santos Lugares",
+        direccion: "Almafuerte 3664, Santos Lugares",
+        precio: "$550k - $1.1M",
+        distancia: "~7 min",
+        destacado: "A 7 MIN - Versátil y económico",
+        capacidad: "40-100 personas",
+        incluye: "Salón, sonido, iluminación, DJ, catering básico",
+        telefono: "Consultar",
+        email: "info@mixeventos.com.ar",
+        web: "mixeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    makanas: {
+        lat: -34.6134,
+        lng: -58.5701,
+        nombre: "Makanas Eventos",
+        direccion: "Valentín Gómez 4868, Caseros",
+        precio: "$600k - $1.2M",
+        distancia: "~13 min",
+        destacado: "Caseros - Completo y profesional",
+        capacidad: "50-120 personas",
+        incluye: "Salón, catering, DJ, decoración",
+        telefono: "Consultar",
+        email: "info@makanas.com.ar",
+        web: "makanas.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    gaeventos: {
+        lat: -34.6089,
+        lng: -58.5623,
+        nombre: "GA Eventos",
+        direccion: "Av. Mitre 4015, Caseros",
+        precio: "$650k - $1.3M",
+        distancia: "~12 min",
+        destacado: "Caseros - Moderno y amplio",
+        capacidad: "40-150 personas",
+        incluye: "Salón amplio, patio, catering, sonido",
+        telefono: "Consultar",
+        email: "info@gaeventos.com.ar",
+        web: "gaeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    rinconebro: {
+        lat: -34.6123,
+        lng: -58.5712,
+        nombre: "Rincón del Ebro",
+        direccion: "Av. San Martín 1846, Caseros",
+        precio: "$700k - $1.4M",
+        distancia: "~13 min",
+        destacado: "Caseros - Tradicional y elegante",
+        capacidad: "50-130 personas",
+        incluye: "Salón, jardín, catering gourmet",
+        telefono: "Consultar",
+        email: "info@rinconebro.com.ar",
+        web: "rinconebro.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    partyhall: {
+        lat: -34.6401,
+        lng: -58.5634,
+        nombre: "Party Hall Sphere",
+        direccion: "Av. Gral. San Martín 1936, Ramos Mejía",
+        precio: "$800k - $1.5M",
+        distancia: "~18 min",
+        destacado: "Ramos Mejía - Premium y moderno",
+        capacidad: "60-200 personas",
+        incluye: "Salón de lujo, catering premium, DJ, iluminación",
+        telefono: "Consultar",
+        email: "info@partyhallsphere.com.ar",
+        web: "partyhallsphere.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    janosMoron: {
+        lat: -34.6534,
+        lng: -58.6189,
+        nombre: "Jano's Eventos Morón",
+        direccion: "Zona Morón",
+        precio: "$500k - $1M",
+        distancia: "~20 min",
+        destacado: "Morón - Cadena reconocida, múltiples opciones",
+        capacidad: "40-150 personas",
+        incluye: "Salón, espacios verdes, catering completo",
+        telefono: "Consultar",
+        email: "info@janoseventos.com.ar",
+        web: "janoseventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    janosHurlingham: {
+        lat: -34.5923,
+        lng: -58.6345,
+        nombre: "Jano's Hurlingham",
+        direccion: "Zona Hurlingham",
+        precio: "$500k - $1.1M",
+        distancia: "~22 min",
+        destacado: "Hurlingham - 80 a 350 invitados",
+        capacidad: "80-350 personas",
+        incluye: "Salón grande, jardín, catering, DJ",
+        telefono: "Consultar",
+        email: "hurlingham@janoseventos.com.ar",
+        web: "janoseventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    janosItuzaingo: {
+        lat: -34.6612,
+        lng: -58.6734,
+        nombre: "Jano's Ituzaingó",
+        direccion: "Zona Ituzaingó",
+        precio: "$450k - $1M",
+        distancia: "~25 min",
+        destacado: "Ituzaingó - Económico y completo",
+        capacidad: "50-200 personas",
+        incluye: "Salón, espacios verdes, catering",
+        telefono: "Consultar",
+        email: "ituzaingo@janoseventos.com.ar",
+        web: "janoseventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    lagalera: {
+        lat: -34.6445,
+        lng: -58.6123,
+        nombre: "Salón La Galera",
+        direccion: "Carlos Pellegrini 842, Morón",
+        precio: "$550k - $1.2M",
+        distancia: "~20 min",
+        destacado: "Morón - Multievento con pelotero y cancha",
+        capacidad: "50-120 personas",
+        incluye: "Pelotero, cancha fútbol, parrilla, catering",
+        telefono: "Consultar",
+        email: "info@lagalera.com.ar",
+        web: "lagalera.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    carmela: {
+        lat: -34.6623,
+        lng: -58.6712,
+        nombre: "Carmela Recepciones",
+        direccion: "Tel Aviv 3798, Ituzaingó",
+        precio: "$600k - $1.3M",
+        distancia: "~25 min",
+        destacado: "Ituzaingó - Elegante y familiar",
+        capacidad: "40-100 personas",
+        incluye: "Salón, jardín, catering, decoración",
+        telefono: "Consultar",
+        email: "info@carmelarecep.com.ar",
+        web: "carmelarecep.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    colihue: {
+        lat: -34.6589,
+        lng: -58.6689,
+        nombre: "Colihue Eventos",
+        direccion: "José María Paz 1741, Ituzaingó",
+        precio: "$500k - $1.1M",
+        distancia: "~24 min",
+        destacado: "Ituzaingó - Versátil y accesible",
+        capacidad: "40-90 personas",
+        incluye: "Salón, patio, catering, sonido",
+        telefono: "Consultar",
+        email: "info@colihueeventos.com.ar",
+        web: "colihueeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    lorenza: {
+        lat: -34.6512,
+        lng: -58.6234,
+        nombre: "Lorenza Eventos",
+        direccion: "Zona Morón",
+        precio: "$700k - $1.5M",
+        distancia: "~21 min",
+        destacado: "Morón - Premium para bodas",
+        capacidad: "50-150 personas",
+        incluye: "Salón elegante, catering gourmet, decoración",
+        telefono: "Consultar",
+        email: "info@lorenzaeventos.com.ar",
+        web: "lorenzaeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    villaballester: {
+        lat: -34.5567,
+        lng: -58.5534,
+        nombre: "Quincho Villa Ballester",
+        direccion: "Misiones 200, Villa Ballester",
+        precio: "$400k - $900k",
+        distancia: "~15 min",
+        destacado: "Villa Ballester - Quinta con pileta y parque",
+        capacidad: "40-100 personas",
+        incluye: "Quincho, parque, pileta, parrilla, cocina",
+        telefono: "Consultar",
+        email: "info@quinchavb.com.ar",
+        web: "quinchavb.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    stylo: {
+        lat: -34.6789,
+        lng: -58.7123,
+        nombre: "Stylo Eventos",
+        direccion: "Zona Moreno",
+        precio: "$450k - $1M",
+        distancia: "~30 min",
+        destacado: "Moreno - Amplio y económico",
+        capacidad: "60-200 personas",
+        incluye: "Salón grande, parque, catering",
+        telefono: "Consultar",
+        email: "info@styloeventos.com.ar",
+        web: "styloeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    },
+    quintamargarita: {
+        lat: -34.6923,
+        lng: -58.7345,
+        nombre: "Quinta Margarita",
+        direccion: "Zona Merlo/Pontevedra",
+        precio: "$500k - $1.2M",
+        distancia: "~32 min",
+        destacado: "Merlo - Quinta campestre",
+        capacidad: "50-150 personas",
+        incluye: "Quinta, parque, salón, catering, parrilla",
+        telefono: "Consultar",
+        email: "info@quintamargarita.com.ar",
+        web: "quintamargarita.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800"
+        ]
+    },
+    palacioleloir: {
+        lat: -34.6234,
+        lng: -58.5923,
+        nombre: "Palacio Leloir Eventos",
+        direccion: "Zona Oeste",
+        precio: "$1M - $2M",
+        distancia: "~18 min",
+        destacado: "Estilo francés - Premium y exclusivo",
+        capacidad: "50-120 personas",
+        incluye: "Palacio histórico, jardines, catering gourmet",
+        telefono: "Consultar",
+        email: "info@palacioleloir.com.ar",
+        web: "palacioleloir.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800"
+        ]
+    },
+    vilanova: {
+        lat: -34.6312,
+        lng: -58.6012,
+        nombre: "Vila Nova Recepciones",
+        direccion: "Zona Oeste",
+        precio: "$650k - $1.4M",
+        distancia: "~19 min",
+        destacado: "Moderno y completo",
+        capacidad: "40-120 personas",
+        incluye: "Salón moderno, jardín, catering, DJ",
+        telefono: "Consultar",
+        email: "info@vilanova.com.ar",
+        web: "vilanova.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        ]
+    }
+};
+
+// Inicializar mapa con Leaflet
+const map = L.map('map').setView([basilica.lat, basilica.lng], 11);
+
+// Agregar tiles de OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+}).addTo(map);
+
+// Icono personalizado para la Basílica
+const basilicaIcon = L.divIcon({
+    html: '<div style="font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">⛪</div>',
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40]
+});
+
+// Icono personalizado para salones
+const salonIcon = L.divIcon({
+    html: '<div style="font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">🏛️</div>',
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40]
+});
+
+// Agregar marcador de la Basílica
+const basilicaMarker = L.marker([basilica.lat, basilica.lng], {icon: basilicaIcon})
+    .addTo(map)
+    .bindPopup(`
+        <div class="popup-content" style="min-width: 250px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #9c27b0;">⛪ ${basilica.nombre}</h4>
+            <p style="margin: 0.25rem 0;">${basilica.direccion}</p>
+            <p style="margin: 0.5rem 0; font-weight: bold;">Ceremonia: 19/12/2026</p>
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(basilica.nombre + ' ' + basilica.direccion)}" 
+               target="_blank" 
+               style="display: inline-block; background: #4285f4; color: white; padding: 0.5rem 1rem; 
+                      border-radius: 5px; text-decoration: none; font-size: 0.9rem; margin-top: 0.5rem;">
+                📍 Abrir en Google Maps
+            </a>
+        </div>
+    `, {maxWidth: 350});
+
+// Agregar marcadores de salones
+const markers = {};
+const bounds = L.latLngBounds([basilica.lat, basilica.lng]);
+
+Object.keys(salones).forEach(key => {
+    const salon = salones[key];
+    
+    const popupContent = `
+        <div class="popup-content" style="min-width: 320px; max-width: 380px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #9c27b0;">🏛️ ${salon.nombre}</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <img src="${salon.fotos[0]}" alt="${salon.nombre}" 
+                     style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
+                <img src="${salon.fotos[1]}" alt="${salon.nombre}" 
+                     style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
+            </div>
+            
+            <p style="margin: 0.25rem 0; font-size: 0.85rem;"><strong>📍</strong> ${salon.direccion}</p>
+            <p style="margin: 0.25rem 0; font-size: 0.85rem;"><strong>🚗</strong> ${salon.distancia} desde la Basílica</p>
+            <p style="margin: 0.25rem 0; font-size: 0.85rem;"><strong>👥</strong> ${salon.capacidad}</p>
+            <p style="margin: 0.5rem 0; color: #e91e63; font-weight: bold; font-size: 1rem;">${salon.precio}</p>
+            
+            <div style="background: #f8f9fa; padding: 0.5rem; border-radius: 5px; margin: 0.5rem 0;">
+                <p style="margin: 0; font-size: 0.8rem;"><strong>Incluye:</strong> ${salon.incluye}</p>
+            </div>
+            
+            <p style="margin: 0.5rem 0; font-size: 0.8rem; font-style: italic; color: #666;">✨ ${salon.destacado}</p>
+            
+            <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #ddd;">
+                <p style="margin: 0.2rem 0; font-size: 0.8rem;"><strong>📞</strong> ${salon.telefono}</p>
+                ${salon.email ? `<p style="margin: 0.2rem 0; font-size: 0.8rem;"><strong>📧</strong> ${salon.email}</p>` : ''}
+                <p style="margin: 0.2rem 0; font-size: 0.8rem;"><strong>🌐</strong> ${salon.web}</p>
+            </div>
+            
+            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                ${salon.googleMapsUrl ? `
+                    <a href="${salon.googleMapsUrl}" 
+                       target="_blank" 
+                       style="display: inline-block; background: #4285f4; color: white; padding: 0.4rem 0.8rem; 
+                              border-radius: 5px; text-decoration: none; font-size: 0.8rem;">
+                        📍 Google Maps
+                    </a>
+                ` : `
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.nombre + ' ' + salon.direccion)}" 
+                       target="_blank" 
+                       style="display: inline-block; background: #4285f4; color: white; padding: 0.4rem 0.8rem; 
+                              border-radius: 5px; text-decoration: none; font-size: 0.8rem;">
+                        📍 Google Maps
+                    </a>
+                `}
+                <a href="https://www.google.com/maps/dir/?api=1&origin=${basilica.lat},${basilica.lng}&destination=${salon.lat},${salon.lng}" 
+                   target="_blank" 
+                   style="display: inline-block; background: #e91e63; color: white; padding: 0.4rem 0.8rem; 
+                          border-radius: 5px; text-decoration: none; font-size: 0.8rem;">
+                    🚗 Cómo llegar
+                </a>
+            </div>
+        </div>
+    `;
+    
+    markers[key] = L.marker([salon.lat, salon.lng], {icon: salonIcon})
+        .addTo(map)
+        .bindPopup(popupContent, {
+            maxWidth: 400,
+            className: 'salon-popup'
+        });
+    
+    bounds.extend([salon.lat, salon.lng]);
+    
+    // Línea de conexión
+    L.polyline([
+        [basilica.lat, basilica.lng],
+        [salon.lat, salon.lng]
+    ], {
+        color: '#e91e63',
+        weight: 2,
+        opacity: 0.5,
+        dashArray: '5, 10'
+    }).addTo(map);
+});
+
+// Ajustar mapa para mostrar todos los marcadores
+map.fitBounds(bounds, {padding: [50, 50]});
+
+// Función para centrar en un salón
+function centrarSalon(salonKey) {
+    const salon = salones[salonKey];
+    if (salon && markers[salonKey]) {
+        map.setView([salon.lat, salon.lng], 15);
+        markers[salonKey].openPopup();
+        
+        // Resaltar card
+        document.querySelectorAll('.distancia-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        const card = document.querySelector(`[data-salon="${salonKey}"]`);
+        if (card) {
+            card.classList.add('active');
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+}
+
+// Generar tarjetas de salones dinámicamente
+const salonesGrid = document.getElementById('salonesGrid');
+Object.keys(salones).forEach(key => {
+    const salon = salones[key];
+    const card = document.createElement('div');
+    card.className = 'distancia-card';
+    card.dataset.salon = key;
+    
+    card.innerHTML = `
+        <div class="salon-nombre">${salon.nombre}</div>
+        <div class="salon-capacidad">${salon.capacidad}</div>
+        <div class="salon-distancia">${salon.distancia} en auto</div>
+        <div class="salon-precio">${salon.precio}</div>
+        <div class="salon-destacado">${salon.destacado}</div>
+        <button class="btn btn-small" onclick="centrarSalon('${key}')">Ver en mapa</button>
+    `;
+    
+    salonesGrid.appendChild(card);
+});
+</script>
+
+{% endblock %}

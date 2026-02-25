@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Casamiento Katherine & Ariel{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>💍 Katherine & Ariel</h1>
+                <p class="nav-subtitle">19 de Diciembre 2026</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="/presupuesto" class="{% if request.path == '/presupuesto' %}active{% endif %}">Presupuesto</a></li>
+                <li><a href="/proveedores" class="{% if request.path == '/proveedores' %}active{% endif %}">Proveedores</a></li>
+                <li><a href="/mapa" class="{% if request.path == '/mapa' %}active{% endif %}">Mapa</a></li>
+                <li><a href="/instagram" class="{% if request.path == '/instagram' %}active{% endif %}">Instagram</a></li>
+                <li><a href="/timeline" class="{% if request.path == '/timeline' %}active{% endif %}">Timeline</a></li>
+                <li><a href="/invitados" class="{% if request.path == '/invitados' %}active{% endif %}">Invitados</a></li>
+                <li><a href="/galeria" class="{% if request.path == '/galeria' %}active{% endif %}">📸 Fotos</a></li>
+                <li><a href="/qr-page" class="{% if request.path == '/qr-page' %}active{% endif %}">QR</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>💕 Casamiento Katherine Molina & Ariel Cardoso - Basílica de Lourdes, Santos Lugares</p>
+            <p class="footer-small">Presupuesto: $5.000.000 | Invitados: 50 personas</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

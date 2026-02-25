@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}Instagram - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="instagram-page">
+    <div class="page-header">
+        <h1>📸 Galería Instagram</h1>
+        <p>Compartí nuestro casamiento en redes sociales</p>
+    </div>
+
+    <!-- Info para compartir -->
+    <div class="share-section">
+        <div class="share-card">
+            <h2>💕 Compartí con nosotros</h2>
+            <div class="hashtags">
+                <span class="hashtag" onclick="copiarTexto('#KatherineYAriel2026')">#KatherineYAriel2026</span>
+                <span class="hashtag" onclick="copiarTexto('#CasamientoKA')">#CasamientoKA</span>
+                <span class="hashtag" onclick="copiarTexto('#19Diciembre2026')">#19Diciembre2026</span>
+            </div>
+            <p class="share-text">Usá estos hashtags para que podamos ver tus fotos y videos</p>
+            <div class="wedding-info-box">
+                <p><strong>📅 Fecha:</strong> 19 de Diciembre 2026</p>
+                <p><strong>⛪ Ceremonia:</strong> Basílica de Lourdes</p>
+                <p><strong>📍 Ubicación:</strong> Santos Lugares, Buenos Aires</p>
+                <a href="https://www.google.com/maps/search/?api=1&query=Basílica+Nuestra+Señora+de+Lourdes+Av+La+Plata+3757+Santos+Lugares" 
+                   target="_blank" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">
+                    📍 Ver Ubicación en Google Maps
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Galería de Salones estilo Instagram -->
+    <div class="instagram-gallery">
+        <h2 class="section-title">🏛️ Nuestros Salones Favoritos</h2>
+        <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+
+    <!-- Plantillas para Stories -->
+    <div class="stories-section">
+        <h2 class="section-title">📱 Plantillas para Instagram Stories</h2>
+        <div class="stories-grid">
+            <div class="story-template" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="story-content">
+                    <h3>💍</h3>
+                    <h2>Save the Date</h2>
+                    <p class="story-names">Katherine & Ariel</p>
+                    <p class="story-date">19.12.2026</p>
+                    <p class="story-hashtag">#KatherineYAriel2026</p>
+                </div>
+                <button class="btn-download" onclick="descargarStory(1)">📥 Descargar</button>
+            </div>
+
+            <div class="story-template" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="story-content">
+                    <h3>⛪</h3>
+                    <h2>Nos Casamos</h2>
+                    <p class="story-names">Katherine & Ariel</p>
+                    <p class="story-location">Basílica de Lourdes</p>
+                    <p class="story-date">19 de Diciembre</p>
+                </div>
+                <button class="btn-download" onclick="descargarStory(2)">📥 Descargar</button>
+            </div>
+
+            <div class="story-template" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="story-content">
+                    <h3>🎉</h3>
+                    <h2>Te Esperamos</h2>
+                    <p class="story-names">Katherine & Ariel</p>
+                    <p class="story-countdown">Faltan <span id="diasRestantes">305</span> días</p>
+                    <p class="story-hashtag">#CasamientoKA</p>
+                </div>
+                <button class="btn-download" onclick="descargarStory(3)">📥 Descargar</button>
+            </div>
+
+            <div class="story-template" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <div class="story-content">
+                    <h3>💕</h3>
+                    <h2>Confirmá tu Asistencia</h2>
+                    <p class="story-names">Katherine & Ariel</p>
+                    <p class="story-contact">11-5963-2661</p>
+                    <p class="story-date">19.12.2026</p>
+                </div>
+                <button class="btn-download" onclick="descargarStory(4)">📥 Descargar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed de Instagram simulado -->
+    <div class="instagram-feed">
+        <h2 class="section-title">📷 Vista Previa Instagram</h2>
+        <div class="feed-container">
+            <div class="feed-post">
+                <div class="post-header">
+                    <div class="post-avatar">💍</div>
+                    <div class="post-user">
+                        <strong>katherine_ariel_2026</strong>
+                        <span>Basílica de Lourdes</span>
+                    </div>
+                </div>
+                <div class="post-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                    💕 Save the Date 💕
+                </div>
+                <div class="post-actions">
+                    <span>❤️ 👁️ 💬 📤</span>
+                </div>
+                <div class="post-caption">
+                    <strong>katherine_ariel_2026</strong> ¡Nos casamos! 💍✨ 
+                    <br>#KatherineYAriel2026 #CasamientoKA #19Diciembre2026
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.instagram-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.share-section {
+    margin: 2rem 0;
+}
+
+.share-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.share-card h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.hashtags {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1.5rem 0;
+}
+
+.hashtag {
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.hashtag:hover {
+    transform: scale(1.1);
+}
+
+.share-text {
+    color: #666;
+    margin: 1rem 0;
+}
+
+.wedding-info-box {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-top: 1.5rem;
+    text-align: left;
+}
+
+.wedding-info-box p {
+    margin: 0.5rem 0;
+}
+
+/* Galería estilo Instagram */
+.instagram-gallery {
+    margin: 3rem 0;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.gallery-item {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: scale(1.05);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    padding: 1rem;
+    color: white;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .gallery-overlay {
+    transform: translateY(0);
+}
+
+.gallery-title {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.gallery-price {
+    font-size: 0.9rem;
+    color: #ffd700;
+}
+
+/* Stories */
+.stories-section {
+    margin: 3rem 0;
+}
+
+.stories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.story-template {
+    aspect-ratio: 9/16;
+    border-radius: 15px;
+    padding: 2rem 1rem;
+    position: relative;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+}
+
+.story-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.story-content h3 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.story-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.story-names {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+    font-family: 'Brush Script MT', cursive;
+}
+
+.story-date, .story-location, .story-contact {
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+}
+
+.story-countdown {
+    font-size: 1.1rem;
+    margin: 1rem 0;
+}
+
+.story-hashtag {
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    opacity: 0.9;
+}
+
+.btn-download {
+    background: rgba(255,255,255,0.3);
+    border: 2px solid white;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-download:hover {
+    background: white;
+    color: #333;
+}
+
+/* Feed de Instagram */
+.instagram-feed {
+    margin: 3rem 0;
+}
+
+.feed-container {
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.feed-post {
+    background: white;
+    border: 1px solid #dbdbdb;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    gap: 0.75rem;
+}
+
+.post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.post-user {
+    display: flex;
+    flex-direction: column;
+}
+
+.post-user strong {
+    font-size: 0.9rem;
+}
+
+.post-user span {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.post-image {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #f0f0f0;
+}
+
+.post-actions {
+    padding: 1rem;
+    font-size: 1.5rem;
+}
+
+.post-caption {
+    padding: 0 1rem 1rem 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .instagram-page {
+        padding: 1rem;
+    }
+    
+    .hashtags {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stories-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+}
+</style>
+
+<script>
+// Datos de los salones
+const salones = [
+    { nombre: "Bella Rosa", precio: "$900k-$1.7M", foto: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800" },
+    { nombre: "Tomate Palermo", precio: "$500k-$1.2M", foto: "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800" },
+    { nombre: "Tachwüll", precio: "$1.5M-$2M", foto: "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800" },
+    { nombre: "Botánico Club", precio: "$1.2M-$1.8M", foto: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800" },
+    { nombre: "Augusto & Ros", precio: "$1.5M-$2.5M", foto: "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800" },
+    { nombre: "La Morada", precio: "$800k-$1.5M", foto: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800" },
+    { nombre: "El Casco Art Hotel", precio: "$2M-$3M", foto: "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800" },
+    { nombre: "Casa Feliz", precio: "$1M-$1.8M", foto: "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=800" },
+    { nombre: "Salón Verde", precio: "$700k-$1.3M", foto: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800" }
+];
+
+// Generar galería
+const galleryGrid = document.getElementById('galleryGrid');
+salones.forEach(salon => {
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+    item.innerHTML = `
+        <img src="${salon.foto}" alt="${salon.nombre}">
+        <div class="gallery-overlay">
+            <div class="gallery-title">${salon.nombre}</div>
+            <div class="gallery-price">${salon.precio}</div>
+        </div>
+    `;
+    galleryGrid.appendChild(item);
+});
+
+// Copiar hashtag
+function copiarTexto(texto) {
+    navigator.clipboard.writeText(texto).then(() => {
+        alert(`${texto} copiado al portapapeles!`);
+    });
+}
+
+// Descargar story (simulado)
+function descargarStory(numero) {
+    alert(`Story ${numero} lista para compartir! En la versión completa, esto generaría una imagen descargable.`);
+}
+
+// Calcular días restantes
+const fechaCasamiento = new Date('2026-12-19');
+const hoy = new Date();
+const diferencia = fechaCasamiento - hoy;
+const diasRestantes = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+document.getElementById('diasRestantes').textContent = diasRestantes;
+</script>
+
+{% endblock %}

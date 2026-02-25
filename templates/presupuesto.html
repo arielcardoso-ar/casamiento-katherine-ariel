@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Presupuesto - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>💰 Presupuesto Detallado</h1>
+        <p>Gestión completa del presupuesto para 50 invitados</p>
+    </div>
+
+    <div class="budget-summary">
+        <div class="summary-card">
+            <h3>Presupuesto Total</h3>
+            <p class="summary-amount">${{ "{:,.0f}".format(wedding.presupuesto_total) }}</p>
+        </div>
+        <div class="summary-card">
+            <h3>Estimado</h3>
+            <p class="summary-amount estimated">
+                {% set total_estimado = namespace(value=0) %}
+                {% for categoria in presupuesto.categorias %}
+                    {% for item in categoria['items'] %}
+                        {% set total_estimado.value = total_estimado.value + item.estimado %}
+                    {% endfor %}
+                {% endfor %}
+                ${{ "{:,.0f}".format(total_estimado.value) }}
+            </p>
+        </div>
+        <div class="summary-card success">
+            <h3>Disponible</h3>
+            <p class="summary-amount">${{ "{:,.0f}".format(wedding.presupuesto_total - total_estimado.value) }}</p>
+        </div>
+    </div>
+
+    {% for categoria in presupuesto.categorias %}
+    <div class="budget-category">
+        <div class="category-header">
+            <h2>{{ categoria.nombre }}</h2>
+            <span class="category-total">
+                ${{ "{:,.0f}".format(categoria['items'] | sum(attribute='estimado')) }}
+            </span>
+        </div>
+        <div class="budget-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Presupuesto Estimado</th>
+                        <th>Costo Real</th>
+                        <th>Pagado</th>
+                        <th>Saldo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in categoria['items'] %}
+                    <tr>
+                        <td><strong>{{ item.item }}</strong></td>
+                        <td>${{ "{:,.0f}".format(item.estimado) }}</td>
+                        <td>
+                            {% if item.real > 0 %}
+                                ${{ "{:,.0f}".format(item.real) }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.pagado > 0 %}
+                                ${{ "{:,.0f}".format(item.pagado) }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.real > 0 %}
+                                ${{ "{:,.0f}".format(item.real - item.pagado) }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.pagado >= item.real and item.real > 0 %}
+                                <span class="badge badge-success">Pagado</span>
+                            {% elif item.real > 0 %}
+                                <span class="badge badge-warning">Pendiente</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Sin cotizar</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="budget-notes">
+        <h3>📝 Notas Importantes</h3>
+        <ul>
+            <li>Con 50 personas, el presupuesto de $5.000.000 es muy cómodo</li>
+            <li>Priorizar: Salón, Catering, Fotografía y Vestido de novia</li>
+            <li>Considerar paquetes TODO INCLUIDO como Tomate Palermo</li>
+            <li>Reservar un 10% para imprevistos ($500.000)</li>
+            <li>Pedir mínimo 3 presupuestos por categoría</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

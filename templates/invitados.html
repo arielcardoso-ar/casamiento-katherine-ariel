@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Invitados - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>👥 Lista de Invitados</h1>
+        <p>Gestión de 50 invitados para el 19 de Diciembre 2026</p>
+    </div>
+
+    <div class="invitados-summary">
+        <div class="summary-stat">
+            <h3>50</h3>
+            <p>Total Invitados</p>
+        </div>
+        <div class="summary-stat">
+            <h3>0</h3>
+            <p>Confirmados</p>
+        </div>
+        <div class="summary-stat">
+            <h3>50</h3>
+            <p>Pendientes</p>
+        </div>
+        <div class="summary-stat">
+            <h3>0</h3>
+            <p>No Asisten</p>
+        </div>
+    </div>
+
+    <div class="invitados-actions">
+        <button class="btn btn-primary" onclick="agregarInvitado()">+ Agregar Invitado</button>
+        <button class="btn btn-secondary" onclick="exportarLista()">📥 Exportar Lista</button>
+    </div>
+
+    <div class="invitados-table-container">
+        <table class="invitados-table">
+            <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Nombre Completo</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Grupo</th>
+                    <th>Invitación</th>
+                    <th>Confirmación</th>
+                    <th>Menú</th>
+                    <th>Alergias</th>
+                    <th>Mesa</th>
+                </tr>
+            </thead>
+            <tbody id="invitadosTableBody">
+                <!-- Los invitados se agregarán dinámicamente con JavaScript -->
+                <tr class="empty-row">
+                    <td colspan="10" class="text-center">
+                        <p>No hay invitados agregados aún</p>
+                        <button class="btn btn-primary" onclick="agregarInvitado()">
+                            Agregar Primer Invitado
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Distribución por Grupos -->
+    <div class="section">
+        <h2 class="section-title">📊 Distribución por Grupos</h2>
+        <div class="grupos-grid">
+            <div class="grupo-card">
+                <h4>Familia Novia</h4>
+                <p class="grupo-count">0 personas</p>
+            </div>
+            <div class="grupo-card">
+                <h4>Familia Novio</h4>
+                <p class="grupo-count">0 personas</p>
+            </div>
+            <div class="grupo-card">
+                <h4>Amigos</h4>
+                <p class="grupo-count">0 personas</p>
+            </div>
+            <div class="grupo-card">
+                <h4>Trabajo</h4>
+                <p class="grupo-count">0 personas</p>
+            </div>
+            <div class="grupo-card">
+                <h4>Otros</h4>
+                <p class="grupo-count">0 personas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distribución de Mesas -->
+    <div class="section">
+        <h2 class="section-title">🪑 Distribución de Mesas</h2>
+        <p class="section-subtitle">Para 50 personas, recomendamos 6-7 mesas de 8 personas</p>
+        <div class="mesas-grid">
+            <div class="mesa-card">
+                <h4>Mesa 1</h4>
+                <p>0 / 8 personas</p>
+            </div>
+            <div class="mesa-card">
+                <h4>Mesa 2</h4>
+                <p>0 / 8 personas</p>
+            </div>
+            <div class="mesa-card">
+                <h4>Mesa 3</h4>
+                <p>0 / 8 personas</p>
+            </div>
+            <div class="mesa-card">
+                <h4>Mesa 4</h4>
+                <p>0 / 8 personas</p>
+            </div>
+            <div class="mesa-card">
+                <h4>Mesa 5</h4>
+                <p>0 / 8 personas</p>
+            </div>
+            <div class="mesa-card">
+                <h4>Mesa 6</h4>
+                <p>0 / 8 personas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="tips-box">
+        <h3>💡 Consejos para la Lista de Invitados</h3>
+        <ul>
+            <li>Enviar invitaciones con 4-5 meses de anticipación (Agosto 2026)</li>
+            <li>Pedir confirmación hasta Octubre 2026</li>
+            <li>Consultar alergias y restricciones alimentarias</li>
+            <li>Organizar mesas por grupos afines</li>
+            <li>Considerar mesa de niños si hay varios</li>
+            <li>Dejar 2-3 lugares extra por si surgen imprevistos</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Modal para agregar invitado -->
+<div id="modalInvitado" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="modal-close" onclick="cerrarModal()">&times;</span>
+        <h2>Agregar Invitado</h2>
+        <form id="formInvitado" onsubmit="guardarInvitado(event)">
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" name="telefono">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email">
+            </div>
+            <div class="form-group">
+                <label>Grupo *</label>
+                <select name="grupo" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="Familia Novia">Familia Novia</option>
+                    <option value="Familia Novio">Familia Novio</option>
+                    <option value="Amigos">Amigos</option>
+                    <option value="Trabajo">Trabajo</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/invitados.js') }}"></script>
+{% endblock %}

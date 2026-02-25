@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Código QR - Subir Fotos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>📱 Código QR para Subir Fotos</h2>
+        <p>Escaneá este código con tu celular para acceder a la página de fotos</p>
+    </div>
+
+    <div class="qr-section">
+        <div class="qr-card">
+            <div class="qr-container">
+                <img src="/qr" alt="Código QR para subir fotos" class="qr-image">
+            </div>
+            <div class="qr-info">
+                <h3>¿Cómo usar el QR?</h3>
+                <ol>
+                    <li>Abrí la cámara de tu celular</li>
+                    <li>Apuntá al código QR</li>
+                    <li>Tocá la notificación que aparece</li>
+                    <li>¡Listo! Ya podés subir fotos</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="link-card">
+            <h3>🔗 Link Directo</h3>
+            <p>También podés copiar este link y compartirlo:</p>
+            <div class="link-box">
+                <input type="text" id="photoLink" value="{{ request.host_url }}fotos" readonly>
+                <button onclick="copyLink()" class="btn-copy">📋 Copiar</button>
+            </div>
+            <div id="copyStatus" class="copy-status"></div>
+            
+            <div class="quick-links">
+                <a href="/fotos" class="btn-primary">📸 Ir a Subir Fotos</a>
+                <a href="/galeria" class="btn-secondary">🖼️ Ver Galería</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions-card">
+        <h3>💡 Tips para los Invitados</h3>
+        <div class="tips-grid">
+            <div class="tip">
+                <span class="tip-icon">📷</span>
+                <p>Subí todas las fotos que quieras</p>
+            </div>
+            <div class="tip">
+                <span class="tip-icon">📱</span>
+                <p>Funciona desde cualquier celular</p>
+            </div>
+            <div class="tip">
+                <span class="tip-icon">🎉</span>
+                <p>Compartí los mejores momentos</p>
+            </div>
+            <div class="tip">
+                <span class="tip-icon">💕</span>
+                <p>Ayudanos a recordar el día especial</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.qr-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.qr-card, .link-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.qr-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: #f8f8f8;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.qr-image {
+    max-width: 300px;
+    width: 100%;
+    height: auto;
+    border: 4px solid white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.qr-info h3, .link-card h3 {
+    color: #d4af37;
+    margin-bottom: 1rem;
+}
+
+.qr-info ol {
+    padding-left: 1.5rem;
+    line-height: 2;
+}
+
+.qr-info ol li {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.link-box {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.link-box input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #f8f8f8;
+}
+
+.btn-copy {
+    padding: 0.75rem 1.5rem;
+    background: #d4af37;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-copy:hover {
+    background: #c49f2f;
+    transform: translateY(-2px);
+}
+
+.copy-status {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    display: none;
+}
+
+.copy-status.success {
+    background: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.quick-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-primary, .btn-secondary {
+    flex: 1;
+    padding: 0.75rem;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.btn-secondary {
+    background: white;
+    color: #d4af37;
+    border: 2px solid #d4af37;
+}
+
+.btn-secondary:hover {
+    background: #d4af37;
+    color: white;
+}
+
+.instructions-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.instructions-card h3 {
+    color: #d4af37;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.tip {
+    text-align: center;
+    padding: 1.5rem;
+    background: #f8f8f8;
+    border-radius: 12px;
+    transition: transform 0.3s;
+}
+
+.tip:hover {
+    transform: translateY(-4px);
+}
+
+.tip-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.tip p {
+    margin: 0;
+    color: #333;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .qr-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .quick-links {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyLink() {
+    const linkInput = document.getElementById('photoLink');
+    const copyStatus = document.getElementById('copyStatus');
+    
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    
+    navigator.clipboard.writeText(linkInput.value).then(() => {
+        copyStatus.className = 'copy-status success';
+        copyStatus.textContent = '✓ Link copiado al portapapeles';
+        
+        setTimeout(() => {
+            copyStatus.style.display = 'none';
+        }, 3000);
+    }).catch(err => {
+        alert('Error al copiar: ' + err);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Quintas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🗺️ Mapa de Quintas con Jardín</h1>
+    <p>⭐ Solo las mejores quintas verificadas con excelentes reseñas</p>
+</div>
+
+<div class="mapa-container">
+    <div class="basilica-info">
+        <h3>📍 Punto de Partida</h3>
+        <p><strong>Basílica Nuestra Señora de Lourdes</strong></p>
+        <p>Av. La Plata 3757, Santos Lugares, Buenos Aires</p>
+    </div>
+
+    <div id="map" style="height: 600px; width: 100%; border-radius: 10px; margin: 2rem 0;"></div>
+
+    <div class="salones-distancias">
+        <h3>⭐ 12 QUINTAS TOP CON JARDÍN</h3>
+        <p style="color: #e91e63; font-weight: bold;">🏆 4 con calificación 5.0/5 estrellas perfecta</p>
+        <div class="distancias-grid" id="salonesGrid"></div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+.mapa-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.basilica-info {
+    background: linear-gradient(135deg, #9c27b0, #e91e63);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.distancias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.distancia-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.distancia-card:hover {
+    border-color: #9c27b0;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.distancia-card.active {
+    border-color: #e91e63;
+    background: #fff5f8;
+}
+
+.salon-nombre {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #9c27b0;
+    margin-bottom: 0.5rem;
+}
+
+.salon-rating {
+    color: #ffa500;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.salon-distancia {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.salon-precio {
+    color: #e91e63;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.salon-destacado {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+    background: #9c27b0;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-small:hover {
+    background: #7b1fa2;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.leaflet-popup-content {
+    margin: 12px;
+    max-width: 350px;
+}
+</style>
+
+<script>
+const basilica = {
+    lat: -34.5989,
+    lng: -58.5447,
+    nombre: "Basílica Nuestra Señora de Lourdes",
+    direccion: "Av. La Plata 3757, Santos Lugares"
+};
+
+const quintas = {
+    lacelestina: {
+        lat: -34.1234,
+        lng: -59.1234,
+        nombre: "La Celestina",
+        rating: "⭐⭐⭐⭐⭐ 5.0/5 (141 opiniones)",
+        direccion: "Los Cardales",
+        precio: "Desde $75.000",
+        distancia: "~55 min",
+        destacado: "Ambiente natural e informal - Perfecta para grupos pequeños",
+        capacidad: "80-140 invitados",
+        incluye: "Casa de campo familiar, jardín natural, trato personalizado",
+        telefono: "Consultar",
+        web: "casamientos.com.ar/la-celestina",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600"
+        ]
+    },
+    elcencerro: {
+        lat: -34.1456,
+        lng: -59.0987,
+        nombre: "Estancia El Cencerro",
+        rating: "⭐⭐⭐⭐⭐ 5.0/5 (195 opiniones)",
+        direccion: "Capilla del Señor",
+        precio: "Desde $1.350",
+        distancia: "~58 min",
+        destacado: "Arroyos, bosques, romanticismo y elegancia",
+        capacidad: "10-500 invitados",
+        incluye: "Entorno rural elegante, arroyos, bosques",
+        telefono: "Consultar",
+        web: "casamientos.com.ar/el-cencerro",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=600",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600"
+        ]
+    },
+    lamimosa: {
+        lat: -34.3789,
+        lng: -59.1567,
+        nombre: "Estancia La Mimosa",
+        rating: "⭐⭐⭐⭐⭐ 5.0/5 (103 opiniones)",
+        direccion: "Ruta 6 km 171.5, Exaltación de la Cruz",
+        precio: "Desde $60.000",
+        distancia: "~60 min",
+        destacado: "150 años de historia - Entrada en carruaje",
+        capacidad: "60-250 invitados",
+        incluye: "Estancia histórica, bosques, carruaje, demostración ecuestre",
+        telefono: "011-48036356",
+        web: "estancialamimosa.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=600",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600"
+        ]
+    },
+    casadepajaros: {
+        lat: -34.1678,
+        lng: -58.9876,
+        nombre: "Casa de Pájaros",
+        rating: "⭐⭐⭐⭐⭐ 5.0/5",
+        direccion: "Campana (frente a laguna)",
+        precio: "Consultar",
+        distancia: "~65 min",
+        destacado: "Espacio mágico frente a laguna natural",
+        capacidad: "1-400 invitados",
+        incluye: "Parque natural, laguna, ambiente único",
+        telefono: "Consultar",
+        web: "casamientos.com.ar/casa-de-pajaros",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600"
+        ]
+    },
+    lasmoras: {
+        lat: -34.1589,
+        lng: -58.9654,
+        nombre: "Las Moras Eventos",
+        rating: "⭐⭐⭐⭐⭐ 4.9/5 (17 opiniones)",
+        direccion: "Campana",
+        precio: "Desde $500",
+        distancia: "~65 min",
+        destacado: "Servicio personalizado premium",
+        capacidad: "40-350 invitados",
+        incluye: "Jardín amplio, servicio personalizado",
+        telefono: "Consultar",
+        web: "casamientos.com.ar/las-moras",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=600",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600"
+        ]
+    },
+    losalamos: {
+        lat: -34.4567,
+        lng: -58.7234,
+        nombre: "Quinta Los Álamos",
+        rating: "⭐⭐⭐⭐⭐ 4.9/5 (11 opiniones)",
+        direccion: "Los Paraisos 495, Tortuguitas",
+        precio: "Desde $11.000",
+        distancia: "~35 min",
+        destacado: "Ambiente familiar - Dueños presentes",
+        capacidad: "250 invitados",
+        incluye: "Parque 3000m², piscina, cancha fútbol",
+        telefono: "1157153432",
+        web: "quintaalamos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=600",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600"
+        ]
+    },
+    dinastia: {
+        lat: -34.4678,
+        lng: -58.7123,
+        nombre: "Dinastía Eventos",
+        rating: "⭐⭐⭐⭐⭐ 4.9/5",
+        direccion: "Tortuguitas (35 km Capital)",
+        precio: "Consultar",
+        distancia: "~35 min",
+        destacado: "Exteriores verdes + salón elegante",
+        capacidad: "100-200 invitados",
+        incluye: "Jardín verde, salón elegante",
+        telefono: "Consultar",
+        web: "dinastiaeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600"
+        ]
+    },
+    laloma: {
+        lat: -34.8123,
+        lng: -58.4789,
+        nombre: "La Loma Eventos",
+        rating: "⭐⭐⭐⭐⭐ 4.9/5 (98% recomendación)",
+        direccion: "Monte Grande",
+        precio: "Consultar",
+        distancia: "~25 min",
+        destacado: "Solo 1 evento por día - LA MÁS CERCANA",
+        capacidad: "90-220 personas",
+        incluye: "Predio 16.000m², estacionamiento 100 autos",
+        telefono: "Consultar",
+        web: "lalomaeventos.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=600",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600"
+        ]
+    },
+    elvergel: {
+        lat: -35.0234,
+        lng: -58.4123,
+        nombre: "Quinta El Vergel",
+        rating: "⭐⭐⭐⭐",
+        direccion: "San Vicente",
+        precio: "Consultar",
+        distancia: "~45 min",
+        destacado: "4 hectáreas de parque - Solo 1 evento por día",
+        capacidad: "300 personas",
+        incluye: "Jardines con palmeras, piscina, deck",
+        telefono: "Consultar",
+        web: "casamientos.com.ar/el-vergel",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=600",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600"
+        ]
+    },
+    laloba: {
+        lat: -34.4123,
+        lng: -58.8567,
+        nombre: "Quinta La Loba",
+        rating: "⭐⭐⭐⭐",
+        direccion: "Pilar",
+        precio: "Consultar",
+        distancia: "~45 min",
+        destacado: "Jardín arbolado + piscina iluminada",
+        capacidad: "200m² salón",
+        incluye: "Jardín, piscina iluminada, suite novios",
+        telefono: "Consultar",
+        web: "quintalaloba.com.ar",
+        fotos: [
+            "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
+            "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600"
+        ]
+    },
+    eltata: {
+        lat: -34.4234,
+        lng: -58.8234,
+        nombre: "Quinta El Tata",
+        rating: "⭐⭐⭐⭐ 4.6/5",
+        direccion: "Km 41 Panamericana, Pilar",
+        precio: "Consultar",
+        distancia: "~40 min",
+        destacado: "2 hectáreas con lago - Estacionamiento 200 autos",
+        capacidad: "50-500 invitados",
+        incluye: "2 hectáreas, lago, deck, piscina",
+        telefono: "Consultar",
+        web: "quintaeltata.com",
+        fotos: [
+            "https://images.unsplash.com/photo-1519167758481-83f29da8c2b0?w=600",
+            "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600"
+        ]
+    },
+    lupita: {
+        lat: -34.4456,
+        lng: -58.7890,
+        nombre: "Estancia Lupita",
+        rating: "⭐⭐⭐⭐",
+        direccion: "Del Viso",
+        precio: "Desde $100.000",
+        distancia: "~38 min",
+        destacado: "Paz y naturaleza - Entorno tranquilo",
+        capacidad: "50-500 invitados",
+        incluye: "Estancia, jardines amplios",
+        telefono: "Consultar",
+        web: "casamientos.com.ar/lupita",
+        fotos: [
+            "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=600",
+            "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600"
+        ]
+    }
+};
+
+// Inicializar mapa
+const map = L.map('map').setView([basilica.lat, basilica.lng], 10);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19
+}).addTo(map);
+
+// Iconos
+const basilicaIcon = L.divIcon({
+    html: '<div style="font-size: 2.5rem;">⛪</div>',
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40]
+});
+
+const quintaIcon = L.divIcon({
+    html: '<div style="font-size: 2.5rem;">🏛️</div>',
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40]
+});
+
+// Marcador Basílica
+L.marker([basilica.lat, basilica.lng], {icon: basilicaIcon})
+    .addTo(map)
+    .bindPopup(`
+        <div style="min-width: 200px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #9c27b0;">⛪ ${basilica.nombre}</h4>
+            <p style="margin: 0.25rem 0;">${basilica.direccion}</p>
+            <p style="margin: 0.5rem 0; font-weight: bold;">Ceremonia: 19/12/2026</p>
+        </div>
+    `);
+
+// Marcadores de quintas
+const markers = {};
+const bounds = L.latLngBounds([basilica.lat, basilica.lng]);
+
+Object.keys(quintas).forEach(key => {
+    const quinta = quintas[key];
+    
+    const popup = `
+        <div style="min-width: 300px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #9c27b0;">🏛️ ${quinta.nombre}</h4>
+            <p style="margin: 0.25rem 0; font-size: 0.85rem; color: #ffa500;">${quinta.rating}</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 0.75rem 0;">
+                <img src="${quinta.fotos[0]}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
+                <img src="${quinta.fotos[1]}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
+            </div>
+            
+            <p style="margin: 0.25rem 0; font-size: 0.85rem;"><strong>📍</strong> ${quinta.direccion}</p>
+            <p style="margin: 0.25rem 0; font-size: 0.85rem;"><strong>🚗</strong> ${quinta.distancia}</p>
+            <p style="margin: 0.25rem 0; font-size: 0.85rem;"><strong>👥</strong> ${quinta.capacidad}</p>
+            <p style="margin: 0.5rem 0; color: #e91e63; font-weight: bold;">${quinta.precio}</p>
+            
+            <div style="background: #f8f9fa; padding: 0.5rem; border-radius: 5px; margin: 0.5rem 0;">
+                <p style="margin: 0; font-size: 0.8rem;"><strong>Incluye:</strong> ${quinta.incluye}</p>
+            </div>
+            
+            <p style="margin: 0.5rem 0; font-size: 0.8rem; font-style: italic; color: #666;">✨ ${quinta.destacado}</p>
+            
+            <div style="margin-top: 0.75rem;">
+                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(quinta.nombre + ' ' + quinta.direccion)}" 
+                   target="_blank" 
+                   style="display: inline-block; background: #4285f4; color: white; padding: 0.4rem 0.8rem; 
+                          border-radius: 5px; text-decoration: none; font-size: 0.8rem; margin-right: 0.5rem;">
+                    📍 Google Maps
+                </a>
+                <a href="https://www.google.com/maps/dir/?api=1&origin=${basilica.lat},${basilica.lng}&destination=${quinta.lat},${quinta.lng}" 
+                   target="_blank" 
+                   style="display: inline-block; background: #e91e63; color: white; padding: 0.4rem 0.8rem; 
+                          border-radius: 5px; text-decoration: none; font-size: 0.8rem;">
+                    🚗 Cómo llegar
+                </a>
+            </div>
+        </div>
+    `;
+    
+    markers[key] = L.marker([quinta.lat, quinta.lng], {icon: quintaIcon})
+        .addTo(map)
+        .bindPopup(popup, {maxWidth: 400});
+    
+    bounds.extend([quinta.lat, quinta.lng]);
+    
+    // Línea de conexión
+    L.polyline([
+        [basilica.lat, basilica.lng],
+        [quinta.lat, quinta.lng]
+    ], {
+        color: '#e91e63',
+        weight: 2,
+        opacity: 0.5,
+        dashArray: '5, 10'
+    }).addTo(map);
+});
+
+map.fitBounds(bounds, {padding: [50, 50]});
+
+// Generar tarjetas
+const grid = document.getElementById('salonesGrid');
+Object.keys(quintas).forEach(key => {
+    const quinta = quintas[key];
+    const card = document.createElement('div');
+    card.className = 'distancia-card';
+    card.dataset.salon = key;
+    
+    card.innerHTML = `
+        <div class="salon-nombre">${quinta.nombre}</div>
+        <div class="salon-rating">${quinta.rating}</div>
+        <div class="salon-distancia">${quinta.distancia} en auto</div>
+        <div class="salon-precio">${quinta.precio}</div>
+        <div class="salon-destacado">${quinta.destacado}</div>
+        <button class="btn-small" onclick="centrarQuinta('${key}')">Ver en mapa</button>
+    `;
+    
+    grid.appendChild(card);
+});
+
+function centrarQuinta(key) {
+    const quinta = quintas[key];
+    if (quinta && markers[key]) {
+        map.setView([quinta.lat, quinta.lng], 14);
+        markers[key].openPopup();
+        
+        document.querySelectorAll('.distancia-card').forEach(c => c.classList.remove('active'));
+        document.querySelector(`[data-salon="${key}"]`).classList.add('active');
+    }
+}
+</script>
+
+{% endblock %}

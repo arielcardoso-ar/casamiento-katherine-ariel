@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedores - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>🏢 Proveedores Recomendados</h1>
+        <p>Salones, fotografía, video y más para 50 personas</p>
+        <a href="/mapa" class="btn btn-primary" style="margin-top: 1rem;">🗺️ Ver Mapa Interactivo de Salones</a>
+    </div>
+
+    <!-- Salones -->
+    <div class="section">
+        <h2 class="section-title">🏛️ Salones con Jardín (PRIORIDAD URGENTE)</h2>
+        <div class="providers-list">
+            {% for salon in proveedores.salones %}
+            <div class="provider-item {% if salon.prioridad == 'URGENTE' %}provider-urgent{% endif %}">
+                <div class="provider-header">
+                    <h3>{{ salon.nombre }}</h3>
+                    <span class="priority-badge priority-{{ salon.prioridad.lower() }}">
+                        {{ salon.prioridad }}
+                    </span>
+                </div>
+                <div class="provider-body">
+                    <div class="provider-info">
+                        <p class="provider-price-large">{{ salon.precio }}</p>
+                        <p class="provider-highlight">✨ {{ salon.destacado }}</p>
+                        <div class="provider-contact">
+                            <p>📞 {{ salon.telefono }}</p>
+                            {% if salon.email != '-' %}
+                            <p>📧 {{ salon.email }}</p>
+                            {% endif %}
+                            <p>📍 {{ salon.direccion }}</p>
+                        </div>
+                    </div>
+                    <div class="provider-actions">
+                        <button class="btn btn-primary" onclick="copyContact('{{ salon.telefono }}')">
+                            Copiar Contacto
+                        </button>
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ salon.nombre|urlencode }}+{{ salon.direccion|urlencode }}" 
+                           target="_blank" class="btn btn-secondary" style="margin-top: 0.5rem;">
+                            📍 Ver en Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Fotografía -->
+    <div class="section">
+        <h2 class="section-title">📸 Fotografía (PRIORIDAD ALTA)</h2>
+        <div class="providers-grid-small">
+            {% for foto in proveedores.fotografia %}
+            <div class="provider-card-small">
+                <h4>{{ foto.nombre }}</h4>
+                <p class="provider-price">{{ foto.precio }}</p>
+                <p class="provider-detail">{{ foto.destacado }}</p>
+                <p>🌐 {{ foto.contacto }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Video -->
+    <div class="section">
+        <h2 class="section-title">🎥 Video (PRIORIDAD ALTA)</h2>
+        <div class="providers-grid-small">
+            {% for video in proveedores.video %}
+            <div class="provider-card-small">
+                <h4>{{ video.nombre }}</h4>
+                <p class="provider-price">{{ video.precio }}</p>
+                <p class="provider-detail">{{ video.destacado }}</p>
+                <p>🌐 {{ video.contacto }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Checklist de Cotizaciones -->
+    <div class="section">
+        <h2 class="section-title">✅ Checklist de Cotizaciones</h2>
+        <div class="checklist-container">
+            <div class="checklist-item">
+                <input type="checkbox" id="tomate">
+                <label for="tomate">
+                    <strong>Tomate Palermo</strong> - WhatsApp: 11-7226-9510
+                    <span class="checklist-note">Pedir presupuesto TODO INCLUIDO para 50 pax</span>
+                </label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="tachwull">
+                <label for="tachwull">
+                    <strong>Tachwüll</strong> - Web: tachwull.com
+                    <span class="checklist-note">Consultar disponibilidad 19/12/2026</span>
+                </label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="botanico">
+                <label for="botanico">
+                    <strong>Botánico</strong> - WhatsApp: +54 9 3364 02-9481
+                    <span class="checklist-note">Preguntar si permiten catering externo</span>
+                </label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="augusto">
+                <label for="augusto">
+                    <strong>Augusto & Ros</strong> - Tel: 011-4702-9752
+                    <span class="checklist-note">Consultar precio para evento íntimo</span>
+                </label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="martin">
+                <label for="martin">
+                    <strong>Martín Díaz Bodas</strong> - www.martindiazbodas.com
+                    <span class="checklist-note">Ver paquetes 2026</span>
+                </label>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" id="bokeh">
+                <label for="bokeh">
+                    <strong>Bokeh Estudio</strong> - www.bokehestudiobodas.com
+                    <span class="checklist-note">Cotizar Pack Cine para video</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consejos -->
+    <div class="tips-box">
+        <h3>💡 Consejos para Cotizar</h3>
+        <ul>
+            <li>Pedir mínimo 3 presupuestos por categoría</li>
+            <li>Preguntar QUÉ incluye cada paquete</li>
+            <li>Verificar disponibilidad para 19/12/2026</li>
+            <li>Consultar formas de pago y señas</li>
+            <li>Leer reseñas y pedir referencias</li>
+            <li>Visitar los salones en persona</li>
+            <li>Preguntar por plan B en caso de lluvia</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyContact(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Contacto copiado: ' + text);
+    });
+}
+</script>
+{% endblock %}

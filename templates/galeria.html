@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Galería de Fotos - Casamiento Katherine & Ariel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>🖼️ Galería de Fotos</h2>
+        <p>Todas las fotos compartidas del casamiento</p>
+        <a href="/fotos" class="btn-upload">📸 Subir Foto</a>
+    </div>
+
+    <div class="gallery-stats">
+        <div class="stat-card">
+            <span class="stat-number">{{ fotos|length }}</span>
+            <span class="stat-label">Fotos subidas</span>
+        </div>
+    </div>
+
+    {% if fotos %}
+    <div class="gallery-grid">
+        {% for foto in fotos %}
+        <div class="gallery-item" data-id="{{ foto.id }}">
+            <div class="gallery-image">
+                <img src="{{ url_for('static', filename=foto.thumbnail or foto.ruta) }}" 
+                     alt="{{ foto.descripcion or 'Foto del casamiento' }}"
+                     loading="lazy"
+                     onclick="openModal('{{ url_for('static', filename=foto.ruta) }}', '{{ foto.subido_por }}', '{{ foto.descripcion }}', '{{ foto.fecha_subida }}')">
+            </div>
+            <div class="gallery-info">
+                <div class="gallery-meta">
+                    <span class="gallery-author">👤 {{ foto.subido_por }}</span>
+                    <span class="gallery-date">📅 {{ foto.fecha_subida[:10] }}</span>
+                </div>
+                {% if foto.descripcion %}
+                <p class="gallery-description">{{ foto.descripcion }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📷</div>
+        <h3>Todavía no hay fotos</h3>
+        <p>Sé el primero en compartir fotos del casamiento</p>
+        <a href="/fotos" class="btn-primary">📸 Subir Primera Foto</a>
+    </div>
+    {% endif %}
+</div>
+
+<div id="imageModal" class="modal">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <div class="modal-content">
+        <img id="modalImage" src="" alt="Foto ampliada">
+        <div class="modal-info">
+            <p><strong>Subido por:</strong> <span id="modalAuthor"></span></p>
+            <p><strong>Fecha:</strong> <span id="modalDate"></span></p>
+            <p id="modalDescription"></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.btn-upload {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.gallery-stats {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem 3rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #d4af37;
+}
+
+.stat-label {
+    display: block;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.gallery-item {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.gallery-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.gallery-image {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    background: #f0f0f0;
+    cursor: pointer;
+}
+
+.gallery-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.gallery-item:hover .gallery-image img {
+    transform: scale(1.05);
+}
+
+.gallery-info {
+    padding: 1rem;
+}
+
+.gallery-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.gallery-description {
+    margin: 0.5rem 0 0 0;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    overflow: auto;
+}
+
+.modal-content {
+    position: relative;
+    margin: 2% auto;
+    max-width: 90%;
+    max-height: 90vh;
+}
+
+.modal-content img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.modal-close:hover {
+    color: #d4af37;
+}
+
+.modal-info {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.modal-info p {
+    margin: 0.5rem 0;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        max-width: 95%;
+    }
+    
+    .modal-close {
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openModal(imageSrc, author, description, date) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalAuthor = document.getElementById('modalAuthor');
+    const modalDate = document.getElementById('modalDate');
+    const modalDescription = document.getElementById('modalDescription');
+    
+    modal.style.display = 'block';
+    modalImage.src = imageSrc;
+    modalAuthor.textContent = author;
+    modalDate.textContent = date.substring(0, 10);
+    
+    if (description) {
+        modalDescription.innerHTML = '<strong>Descripción:</strong> ' + description;
+        modalDescription.style.display = 'block';
+    } else {
+        modalDescription.style.display = 'none';
+    }
+}
+
+function closeModal() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('imageModal');
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}
