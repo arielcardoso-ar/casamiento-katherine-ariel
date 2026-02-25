@@ -16,8 +16,18 @@ from database import CasamientoDatabase
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# Usar /tmp en producción (Render) o static/uploads en local
+if os.environ.get('RENDER'):
+    app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+else:
+    app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'heic', 'heif'}
+
+# Crear carpetas de uploads si no existen
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails'), exist_ok=True)
 
 db = CasamientoDatabase()
 
@@ -442,6 +452,11 @@ def api_eliminar_foto(foto_id):
     """API para eliminar una foto"""
     db.eliminar_foto(foto_id)
     return jsonify({'success': True, 'message': 'Foto eliminada'})
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    """Servir archivos subidos desde /tmp en producción"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     print("=" * 60)
