@@ -22,10 +22,10 @@
         {% for foto in fotos %}
         <div class="gallery-item" data-id="{{ foto.id }}">
             <div class="gallery-image">
-                <img src="{{ url_for('static', filename=foto.thumbnail or foto.ruta) }}" 
+                <img src="/{{ foto.thumbnail or foto.ruta }}" 
                      alt="{{ foto.descripcion or 'Foto del casamiento' }}"
                      loading="lazy"
-                     onclick="openModal('{{ url_for('static', filename=foto.ruta) }}', '{{ foto.subido_por }}', '{{ foto.descripcion }}', '{{ foto.fecha_subida }}')">
+                     onclick="openModal('/{{ foto.ruta }}', '{{ foto.subido_por }}', '{{ foto.descripcion }}', '{{ foto.fecha_subida }}')">
             </div>
             <div class="gallery-info">
                 <div class="gallery-meta">
