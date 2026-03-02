@@ -347,6 +347,34 @@ def mapa():
     """Página de mapa interactivo de salones"""
     return render_template('mapa.html', wedding=WEDDING_DATA)
 
+@app.route('/cotizaciones')
+def cotizaciones():
+    invitados = WEDDING_DATA['invitados']
+    salones = db.get_cotizaciones('salon')
+    return render_template('cotizaciones.html', wedding=WEDDING_DATA, salones=salones, invitados=invitados)
+
+@app.route('/api/cotizaciones', methods=['GET'])
+def api_get_cotizaciones():
+    categoria = request.args.get('categoria')
+    return jsonify(db.get_cotizaciones(categoria))
+
+@app.route('/api/cotizaciones', methods=['POST'])
+def api_agregar_cotizacion():
+    data = request.json
+    id_ = db.agregar_cotizacion(data)
+    return jsonify({'success': True, 'id': id_})
+
+@app.route('/api/cotizaciones/<int:id_>', methods=['PUT'])
+def api_actualizar_cotizacion(id_):
+    data = request.json
+    db.actualizar_cotizacion(id_, data)
+    return jsonify({'success': True})
+
+@app.route('/api/cotizaciones/<int:id_>', methods=['DELETE'])
+def api_eliminar_cotizacion(id_):
+    db.eliminar_cotizacion(id_)
+    return jsonify({'success': True})
+
 @app.route('/instagram')
 def instagram():
     """Página de Instagram y redes sociales"""

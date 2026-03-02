@@ -107,6 +107,24 @@ class CasamientoDatabase:
             )
         ''')
         
+        # Tabla de cotizaciones
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cotizaciones (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                categoria TEXT NOT NULL,
+                proveedor TEXT NOT NULL,
+                precio_por_persona REAL DEFAULT 0,
+                precio_total REAL DEFAULT 0,
+                incluye TEXT,
+                no_incluye TEXT,
+                estado TEXT DEFAULT 'pendiente',
+                fecha_visita TEXT,
+                notas TEXT,
+                recomendado BOOLEAN DEFAULT 0,
+                actualizado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
         # Tabla de fotos
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS fotos (
@@ -479,6 +497,62 @@ class CasamientoDatabase:
         
         return [dict(row) for row in rows]
     
+    # ========== COTIZACIONES ==========
+
+    def get_cotizaciones(self, categoria=None):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if categoria:
+            cursor.execute('SELECT * FROM cotizaciones WHERE categoria = ? ORDER BY precio_total', (categoria,))
+        else:
+            cursor.execute('SELECT * FROM cotizaciones ORDER BY categoria, precio_total')
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(row) for row in rows]
+
+    def agregar_cotizacion(self, datos):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO cotizaciones (categoria, proveedor, precio_por_persona, precio_total,
+                                     incluye, no_incluye, estado, fecha_visita, notas, recomendado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            datos['categoria'], datos['proveedor'],
+            datos.get('precio_por_persona', 0), datos.get('precio_total', 0),
+            datos.get('incluye', ''), datos.get('no_incluye', ''),
+            datos.get('estado', 'pendiente'), datos.get('fecha_visita', ''),
+            datos.get('notas', ''), datos.get('recomendado', 0)
+        ))
+        id_ = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return id_
+
+    def actualizar_cotizacion(self, id_, datos):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE cotizaciones SET categoria=?, proveedor=?, precio_por_persona=?, precio_total=?,
+            incluye=?, no_incluye=?, estado=?, fecha_visita=?, notas=?, recomendado=?,
+            actualizado=CURRENT_TIMESTAMP WHERE id=?
+        ''', (
+            datos['categoria'], datos['proveedor'],
+            datos.get('precio_por_persona', 0), datos.get('precio_total', 0),
+            datos.get('incluye', ''), datos.get('no_incluye', ''),
+            datos.get('estado', 'pendiente'), datos.get('fecha_visita', ''),
+            datos.get('notas', ''), datos.get('recomendado', 0), id_
+        ))
+        conn.commit()
+        conn.close()
+
+    def eliminar_cotizacion(self, id_):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM cotizaciones WHERE id = ?', (id_,))
+        conn.commit()
+        conn.close()
+
     def eliminar_foto(self, foto_id):
         """Eliminar una foto"""
         conn = self.get_connection()
