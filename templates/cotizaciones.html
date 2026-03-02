@@ -1,24 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Cotizaciones - Casamiento Katherine & Ariel{% endblock %}
+{% block title %}Cotizaciones — Katherine & Ariel{% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="page-header">
-        <h1>📋 Comparador de Presupuestos</h1>
-        <p>Comparación de cotizaciones para {{ invitados }} invitados</p>
-        <button class="btn-add" onclick="showForm()">+ Nueva Cotización</button>
+
+    <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>Comparador de Presupuestos</h1>
+            <p>Cotizaciones para {{ invitados }} invitados · Presupuesto objetivo: <strong>$5.000.000</strong></p>
+        </div>
+        <button class="btn-add" onclick="showForm()">+ Nueva cotización</button>
     </div>
 
-    <!-- Tabs por categoría -->
     <div class="tabs">
-        <button class="tab active" onclick="showTab('salon', this)">🏛️ Salones</button>
-        <button class="tab" onclick="showTab('fotografia', this)">📷 Fotografía</button>
-        <button class="tab" onclick="showTab('catering', this)">🍽️ Catering</button>
-        <button class="tab" onclick="showTab('otros', this)">✨ Otros</button>
+        <button class="tab active" onclick="showTab('salon', this)">Salones</button>
+        <button class="tab" onclick="showTab('fotografia', this)">Fotografía</button>
+        <button class="tab" onclick="showTab('catering', this)">Catering</button>
+        <button class="tab" onclick="showTab('otros', this)">Otros</button>
     </div>
 
-    <!-- Comparador de Salones -->
+    <!-- ══════════════════ SALONES ══════════════════ -->
     <div id="tab-salon" class="tab-content active">
 
         {% set salones_data = [
@@ -27,13 +29,9 @@
                 'nombre': 'Bella Rosa',
                 'precio_pp': 108000,
                 'precio_total': 108000 * invitados,
-                'incluye': ['Salón', 'Catering', 'Personal'],
-                'no_incluye': ['Bebidas', 'Decoración', 'DJ'],
                 'estado': 'visitado',
                 'fecha_visita': 'Visitado el sábado',
-                'notas': 'Salón medio pequeño para 50 personas. Ya lo visitamos.',
-                'pros': ['Precio más accesible', 'Ya visitado'],
-                'contras': ['Sin bebidas incluidas', 'Salón chico para 50 pax', 'Sin extras'],
+                'notas': 'Salón chico para 50 personas. Ya lo visitamos.',
                 'alerta': 'warning'
             },
             {
@@ -41,13 +39,9 @@
                 'nombre': 'Espacio Idear',
                 'precio_pp': 168000,
                 'precio_total': 168000 * invitados,
-                'incluye': ['Salón', 'Catering', 'Bebidas', 'Personal', 'Todo incluido'],
-                'no_incluye': [],
                 'estado': 'visita-pendiente',
-                'fecha_visita': 'Jueves a las 18:30',
-                'notas': 'Todo incluido. Visita programada el jueves 18:30.',
-                'pros': ['Todo incluido', 'Sin sorpresas de precio', 'Visita programada'],
-                'contras': ['El más caro de los tres'],
+                'fecha_visita': 'Jueves 18:30',
+                'notas': 'Todo incluido. Visita programada el jueves.',
                 'alerta': 'info'
             },
             {
@@ -55,215 +49,193 @@
                 'nombre': 'Vivanco',
                 'precio_pp': 137500,
                 'precio_total': 137500 * invitados,
-                'incluye': ['Salón', 'Catering', 'Personal'],
-                'no_incluye': ['Transporte', 'Bebidas (a confirmar)'],
                 'estado': 'sin-visitar',
                 'fecha_visita': 'Sin visitar',
-                'notas': 'Está en Tigre, necesitamos transporte. Combos de bebidas a confirmar si están incluidos.',
-                'pros': ['Precio intermedio', 'Posiblemente todo incluido'],
-                'contras': ['En Tigre - costo de transporte extra', 'Bebidas no confirmadas', 'Sin visitar aún'],
+                'notas': 'Tigre. Bebidas a confirmar. Necesita transporte.',
                 'alerta': 'secondary'
             }
         ] %}
 
-        <!-- Resumen rápido -->
+        <!-- Cards resumen -->
         <div class="quick-compare">
             {% for s in salones_data %}
-            <div class="quick-card {{ 'best' if s.precio_pp == salones_data | map(attribute='precio_pp') | min else '' }}">
+            <div class="quick-card {% if s.precio_pp == salones_data | map(attribute='precio_pp') | min %}best{% endif %}">
                 <div class="quick-name">{{ s.nombre }}</div>
-                <div class="quick-price">${{ "{:,.0f}".format(s.precio_pp) }}<span>/pax</span></div>
+                <div class="quick-price">${{ "{:,.0f}".format(s.precio_pp) }}<span> /pax</span></div>
                 <div class="quick-total">${{ "{:,d}".format(s.precio_total | int) }} total</div>
-                <div class="quick-badge badge-{{ s.alerta }}">
+                <span class="badge badge-{{ s.alerta }}" style="margin-top:0.25rem;">
                     {% if s.estado == 'visitado' %}✓ Visitado
-                    {% elif s.estado == 'visita-pendiente' %}📅 Visita: {{ s.fecha_visita }}
+                    {% elif s.estado == 'visita-pendiente' %}📅 {{ s.fecha_visita }}
                     {% else %}⏳ Sin visitar{% endif %}
-                </div>
+                </span>
             </div>
             {% endfor %}
         </div>
 
-        <!-- Comparación detallada -->
-        <div class="compare-table-wrapper">
-            <table class="compare-table">
-                <thead>
-                    <tr>
-                        <th>Detalle</th>
-                        {% for s in salones_data %}
-                        <th class="{{ 'highlight' if s.precio_pp == salones_data | map(attribute='precio_pp') | min else '' }}">
-                            {{ s.nombre }}
-                        </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Precio por persona</strong></td>
-                        {% for s in salones_data %}
-                        <td class="price-cell">${{ "{:,.0f}".format(s.precio_pp) }}</td>
-                        {% endfor %}
-                    </tr>
-                    <tr class="total-row">
-                        <td><strong>Total {{ invitados }} invitados</strong></td>
-                        {% for s in salones_data %}
-                        <td class="price-cell total">${{ "{:,d}".format(s.precio_total | int) }}</td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td><strong>Diferencia vs presupuesto</strong><br><small>($5,000,000)</small></td>
-                        {% for s in salones_data %}
-                        {% set diff = s.precio_total - 5000000 %}
-                        <td class="{{ 'text-red' if diff > 0 else 'text-green' }}">
-                            {{ '+' if diff > 0 else '' }}${{ "{:,d}".format(diff | int) }}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td><strong>Bebidas</strong></td>
-                        <td class="text-red">❌ No incluido</td>
-                        <td class="text-green">✅ Incluido</td>
-                        <td class="text-orange">⚠️ A confirmar</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Catering</strong></td>
-                        {% for s in salones_data %}
-                        <td class="text-green">✅ Incluido</td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td><strong>Transporte</strong></td>
-                        <td class="text-green">✅ No necesario</td>
-                        <td class="text-green">✅ No necesario</td>
-                        <td class="text-red">❌ Tigre - Extra</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Capacidad</strong></td>
-                        <td class="text-orange">⚠️ Chico para 50</td>
-                        <td class="text-green">✅ Ok</td>
-                        <td class="text-green">✅ Ok</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Visita</strong></td>
-                        <td class="text-green">✅ Visitado sábado</td>
-                        <td class="text-orange">📅 Jueves 18:30</td>
-                        <td class="text-red">❌ Sin visitar</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Estado</strong></td>
-                        <td><span class="badge badge-warning">Descartado</span></td>
-                        <td><span class="badge badge-info">A evaluar</span></td>
-                        <td><span class="badge badge-secondary">Pendiente</span></td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Tabla comparativa -->
+        <div class="section" style="padding:0; overflow:hidden; margin-bottom:2rem;">
+            <div class="compare-table-wrapper" style="margin:0;">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>Detalle</th>
+                            {% for s in salones_data %}
+                            <th class="{% if s.precio_pp == salones_data | map(attribute='precio_pp') | min %}highlight{% endif %}">
+                                {{ s.nombre }}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Precio por persona</td>
+                            {% for s in salones_data %}<td class="price-cell">${{ "{:,.0f}".format(s.precio_pp) }}</td>{% endfor %}
+                        </tr>
+                        <tr class="total-row">
+                            <td>Total {{ invitados }} invitados</td>
+                            {% for s in salones_data %}<td class="price-cell total">${{ "{:,d}".format(s.precio_total | int) }}</td>{% endfor %}
+                        </tr>
+                        <tr>
+                            <td>vs. presupuesto <small style="display:block;font-weight:400;color:var(--text-light)">($5.000.000)</small></td>
+                            {% for s in salones_data %}
+                            {% set diff = s.precio_total - 5000000 %}
+                            <td class="{{ 'text-red' if diff > 0 else 'text-green' }}">
+                                {{ '+' if diff > 0 else '' }}${{ "{:,d}".format(diff | int) }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td>Bebidas</td>
+                            <td class="text-red">✗ No incluido</td>
+                            <td class="text-green">✓ Incluido</td>
+                            <td class="text-orange">? A confirmar</td>
+                        </tr>
+                        <tr>
+                            <td>Catering</td>
+                            {% for s in salones_data %}<td class="text-green">✓ Incluido</td>{% endfor %}
+                        </tr>
+                        <tr>
+                            <td>Transporte</td>
+                            <td class="text-green">✓ No necesario</td>
+                            <td class="text-green">✓ No necesario</td>
+                            <td class="text-red">✗ Tigre — Extra</td>
+                        </tr>
+                        <tr>
+                            <td>Capacidad</td>
+                            <td class="text-orange">⚠ Chico para 50</td>
+                            <td class="text-green">✓ Ok</td>
+                            <td class="text-green">✓ Ok</td>
+                        </tr>
+                        <tr>
+                            <td>Estado visita</td>
+                            <td class="text-green">✓ Visitado sábado</td>
+                            <td class="text-orange">Jueves 18:30</td>
+                            <td class="text-red">Sin visitar</td>
+                        </tr>
+                        <tr>
+                            <td>Decisión</td>
+                            <td><span class="badge badge-danger">Descartado</span></td>
+                            <td><span class="badge badge-info">A evaluar</span></td>
+                            <td><span class="badge badge-secondary">Pendiente</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- Estimación real por salón -->
-        <h3 style="margin: 2rem 0 1rem">💰 Estimación de Costo Real</h3>
+        <!-- Estimación costo real -->
+        <h3 style="font-size:1.125rem; margin-bottom:1rem;">Estimación de costo real</h3>
         <div class="cost-estimate-grid">
-            {% for s in salones_data %}
+
             <div class="cost-card">
-                <h4>{{ s.nombre }}</h4>
-                <div class="cost-line">
-                    <span>Salón + Catering ({{ invitados }} pax)</span>
-                    <span>${{ "{:,d}".format(s.precio_total | int) }}</span>
-                </div>
-                {% if s.id == 'bella-rosa' %}
-                <div class="cost-line extra">
-                    <span>+ Bebidas estimadas</span>
-                    <span>~$800,000</span>
-                </div>
-                <div class="cost-line extra">
-                    <span>+ DJ / Decoración</span>
-                    <span>~$500,000</span>
-                </div>
+                <h4>Bella Rosa</h4>
+                <div class="cost-line"><span>Salón + Catering ({{ invitados }} pax)</span><span>${{ "{:,d}".format((108000 * invitados) | int) }}</span></div>
+                <div class="cost-line extra"><span>+ Bebidas estimadas</span><span>~$800.000</span></div>
+                <div class="cost-line extra"><span>+ DJ / Decoración</span><span>~$500.000</span></div>
                 <div class="cost-total">
                     <span>Total estimado</span>
-                    <span class="{{ 'text-red' if (s.precio_total + 800000 + 500000) > 5000000 else 'text-green' }}">${{ "{:,d}".format((s.precio_total + 800000 + 500000) | int) }}</span>
+                    <span class="text-red">${{ "{:,d}".format((108000 * invitados + 800000 + 500000) | int) }}</span>
                 </div>
-                {% elif s.id == 'vivanco' %}
-                <div class="cost-line extra">
-                    <span>+ Transporte estimado</span>
-                    <span>~$300,000</span>
-                </div>
-                <div class="cost-line extra">
-                    <span>+ Bebidas (si no incluye)</span>
-                    <span>~$800,000</span>
-                </div>
-                <div class="cost-total">
-                    <span>Total estimado (sin bebidas)</span>
-                    <span class="{{ 'text-red' if (s.precio_total + 300000) > 5000000 else 'text-green' }}">${{ "{:,d}".format((s.precio_total + 300000) | int) }}</span>
-                </div>
-                <div class="cost-total" style="opacity:0.7">
-                    <span>Total estimado (con bebidas)</span>
-                    <span class="text-red">${{ "{:,d}".format((s.precio_total + 300000 + 800000) | int) }}</span>
-                </div>
-                {% else %}
-                <div class="cost-total">
-                    <span>Total (todo incluido)</span>
-                    <span class="{{ 'text-red' if s.precio_total > 5000000 else 'text-green' }}">${{ "{:,d}".format(s.precio_total | int) }}</span>
-                </div>
-                {% endif %}
             </div>
-            {% endfor %}
+
+            <div class="cost-card">
+                <h4>Espacio Idear</h4>
+                <div class="cost-line"><span>Todo incluido ({{ invitados }} pax)</span><span>${{ "{:,d}".format((168000 * invitados) | int) }}</span></div>
+                <div class="cost-total">
+                    <span>Total (sin sorpresas)</span>
+                    <span class="text-red">${{ "{:,d}".format((168000 * invitados) | int) }}</span>
+                </div>
+            </div>
+
+            <div class="cost-card">
+                <h4>Vivanco</h4>
+                <div class="cost-line"><span>Salón + Catering ({{ invitados }} pax)</span><span>${{ "{:,d}".format((137500 * invitados) | int) }}</span></div>
+                <div class="cost-line extra"><span>+ Transporte estimado</span><span>~$300.000</span></div>
+                <div class="cost-total"><span>Sin bebidas</span><span class="text-red">${{ "{:,d}".format((137500 * invitados + 300000) | int) }}</span></div>
+                <div class="cost-total" style="opacity:0.65; font-size:0.8125rem;">
+                    <span>Con bebidas</span><span class="text-red">${{ "{:,d}".format((137500 * invitados + 300000 + 800000) | int) }}</span>
+                </div>
+            </div>
         </div>
 
         <!-- Pendientes -->
         <div class="pending-actions">
-            <h3>📌 Pendientes</h3>
+            <h3>Pendientes</h3>
             <div class="action-list">
                 <div class="action-item done">
                     <span class="action-check">✅</span>
                     <div>
-                        <strong>Bella Rosa</strong> — Visitado el sábado
-                        <p>Salón chico para 50 personas. Precio base ok pero sin bebidas.</p>
+                        <strong>Bella Rosa — Visitado el sábado</strong>
+                        <p>Salón chico para 50 personas. Precio base razonable pero sin bebidas el costo real sube a ~$6.7M.</p>
                     </div>
                 </div>
                 <div class="action-item pending">
                     <span class="action-check">📅</span>
                     <div>
-                        <strong>Espacio Idear</strong> — Visita el <strong>jueves a las 18:30</strong>
-                        <p>Confirmar capacidad, estilo del salón y qué incluye exactamente.</p>
+                        <strong>Espacio Idear — Visita el jueves a las 18:30</strong>
+                        <p>Confirmar capacidad, estilo del salón y qué incluye exactamente el precio.</p>
                     </div>
                 </div>
                 <div class="action-item todo">
                     <span class="action-check">⏳</span>
                     <div>
-                        <strong>Vivanco</strong> — Sin visitar (Tigre)
-                        <p>Confirmar si bebidas están incluidas. Coordinar transporte para visita.</p>
+                        <strong>Vivanco — Sin visitar (Tigre)</strong>
+                        <p>Confirmar si las bebidas están incluidas en los combos. Coordinar transporte para la visita.</p>
                     </div>
                 </div>
                 <div class="action-item todo">
                     <span class="action-check">🔍</span>
                     <div>
-                        <strong>Buscar más opciones</strong> — Zona más cerca de la Basílica
-                        <p>Tomate Palermo, Botánico, Augusto & Ros (los de la lista original).</p>
+                        <strong>Buscar opciones más cercanas</strong>
+                        <p>Tomate Palermo, Botánico, Augusto & Ros (de la lista original). Priorizar zona Santos Lugares.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recomendación -->
+        <!-- Análisis -->
         <div class="recommendation">
-            <h3>💡 Análisis</h3>
+            <h3>Análisis</h3>
             <div class="rec-grid">
                 <div class="rec-card red">
-                    <div class="rec-icon">❌</div>
+                    <div class="rec-icon">✗</div>
                     <h4>Bella Rosa</h4>
-                    <p>Descartado por capacidad. El salón es chico para 50 personas y sin bebidas el costo real supera $7M.</p>
+                    <p>Descartado por capacidad. El salón es chico y sin bebidas el costo real supera $6.7M.</p>
                 </div>
                 <div class="rec-card green">
-                    <div class="rec-icon">⭐</div>
+                    <div class="rec-icon">★</div>
                     <h4>Espacio Idear</h4>
-                    <p>El más caro pero todo incluido. Sin sorpresas. Evaluar en la visita del jueves si justifica el precio.</p>
+                    <p>El más caro pero sin sorpresas. Evaluar en la visita del jueves si el lugar justifica el precio.</p>
                 </div>
                 <div class="rec-card yellow">
-                    <div class="rec-icon">⚠️</div>
+                    <div class="rec-icon">?</div>
                     <h4>Vivanco</h4>
-                    <p>Precio intermedio pero con incertidumbre. Confirmar bebidas y calcular transporte para decidir.</p>
+                    <p>Precio intermedio con demasiada incertidumbre. Confirmar bebidas y transporte antes de decidir.</p>
                 </div>
             </div>
         </div>
-    </div>
+
+    </div><!-- /tab-salon -->
 
     <!-- Tabs vacíos -->
     <div id="tab-fotografia" class="tab-content">
@@ -271,7 +243,7 @@
             <div class="empty-icon">📷</div>
             <h3>Sin cotizaciones de fotografía</h3>
             <p>Agregá cotizaciones de fotógrafos para compararlas</p>
-            <button class="btn-add" onclick="showForm('fotografia')">+ Agregar Cotización</button>
+            <button class="btn-add" onclick="showForm('fotografia')">+ Agregar cotización</button>
         </div>
     </div>
     <div id="tab-catering" class="tab-content">
@@ -279,213 +251,18 @@
             <div class="empty-icon">🍽️</div>
             <h3>Sin cotizaciones de catering</h3>
             <p>Agregá cotizaciones de catering para compararlas</p>
-            <button class="btn-add" onclick="showForm('catering')">+ Agregar Cotización</button>
+            <button class="btn-add" onclick="showForm('catering')">+ Agregar cotización</button>
         </div>
     </div>
     <div id="tab-otros" class="tab-content">
         <div class="empty-tab">
             <div class="empty-icon">✨</div>
             <h3>Sin otras cotizaciones</h3>
-            <button class="btn-add" onclick="showForm('otros')">+ Agregar Cotización</button>
+            <button class="btn-add" onclick="showForm('otros')">+ Agregar cotización</button>
         </div>
     </div>
 
 </div>
-
-<style>
-.btn-add {
-    padding: 0.6rem 1.2rem;
-    background: #d4af37;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-.tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin: 1.5rem 0;
-    border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 0;
-}
-.tab {
-    padding: 0.75rem 1.25rem;
-    background: none;
-    border: none;
-    font-weight: 600;
-    color: #666;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
-}
-.tab.active {
-    color: #d4af37;
-    border-bottom-color: #d4af37;
-}
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Quick compare */
-.quick-compare {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-.quick-card {
-    background: white;
-    padding: 1.25rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    text-align: center;
-    border: 2px solid transparent;
-}
-.quick-card.best {
-    border-color: #d4af37;
-}
-.quick-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
-.quick-price { font-size: 1.6rem; font-weight: 800; color: #d4af37; }
-.quick-price span { font-size: 0.9rem; color: #666; font-weight: 400; }
-.quick-total { color: #666; font-size: 0.9rem; margin: 0.25rem 0 0.75rem; }
-.quick-badge {
-    display: inline-block;
-    padding: 0.3rem 0.75rem;
-    border-radius: 99px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-.badge-warning { background: #fef3c7; color: #92400e; }
-.badge-info { background: #dbeafe; color: #1e40af; }
-.badge-secondary { background: #f3f4f6; color: #374151; }
-.badge-success { background: #dcfce7; color: #166534; }
-
-/* Compare table */
-.compare-table-wrapper { overflow-x: auto; margin-bottom: 2rem; }
-.compare-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.compare-table th, .compare-table td {
-    padding: 0.875rem 1rem;
-    text-align: center;
-    border-bottom: 1px solid #f0f0f0;
-}
-.compare-table th:first-child, .compare-table td:first-child {
-    text-align: left;
-    background: #fafafa;
-    width: 30%;
-}
-.compare-table th {
-    background: #d4af37;
-    color: white;
-    font-weight: 700;
-}
-.compare-table th.highlight { background: #b8962e; }
-.compare-table tr:last-child td { border-bottom: none; }
-.compare-table .total-row td { background: #fffbeb; font-weight: 700; }
-.price-cell { font-weight: 600; }
-.price-cell.total { font-size: 1.1rem; color: #d4af37; }
-.text-red { color: #dc2626; font-weight: 600; }
-.text-green { color: #16a34a; font-weight: 600; }
-.text-orange { color: #d97706; font-weight: 600; }
-
-/* Cost estimate */
-.cost-estimate-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-.cost-card {
-    background: white;
-    padding: 1.25rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.cost-card h4 { margin-bottom: 1rem; font-size: 1rem; color: #333; }
-.cost-line {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.4rem 0;
-    font-size: 0.9rem;
-    border-bottom: 1px solid #f0f0f0;
-    color: #444;
-}
-.cost-line.extra { color: #d97706; }
-.cost-total {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.6rem 0 0;
-    font-weight: 700;
-    font-size: 0.95rem;
-}
-
-/* Pending actions */
-.pending-actions {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    margin-bottom: 2rem;
-}
-.pending-actions h3 { margin-bottom: 1rem; }
-.action-list { display: flex; flex-direction: column; gap: 0.75rem; }
-.action-item {
-    display: flex;
-    gap: 1rem;
-    padding: 0.875rem;
-    border-radius: 8px;
-    align-items: flex-start;
-}
-.action-item.done { background: #f0fdf4; }
-.action-item.pending { background: #eff6ff; }
-.action-item.todo { background: #fafafa; }
-.action-check { font-size: 1.3rem; margin-top: 0.1rem; }
-.action-item strong { display: block; margin-bottom: 0.2rem; }
-.action-item p { margin: 0; color: #666; font-size: 0.9rem; }
-
-/* Recommendation */
-.recommendation {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.recommendation h3 { margin-bottom: 1rem; }
-.rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-.rec-card {
-    padding: 1.25rem;
-    border-radius: 10px;
-    text-align: center;
-}
-.rec-card.red { background: #fef2f2; border: 1px solid #fecaca; }
-.rec-card.green { background: #f0fdf4; border: 1px solid #bbf7d0; }
-.rec-card.yellow { background: #fffbeb; border: 1px solid #fde68a; }
-.rec-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-.rec-card h4 { margin-bottom: 0.5rem; }
-.rec-card p { font-size: 0.9rem; color: #555; margin: 0; }
-
-.empty-tab {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.empty-icon { font-size: 4rem; margin-bottom: 1rem; }
-.empty-tab h3 { margin-bottom: 0.5rem; }
-.empty-tab p { color: #666; margin-bottom: 1.5rem; }
-
-@media (max-width: 768px) {
-    .quick-compare, .cost-estimate-grid, .rec-grid { grid-template-columns: 1fr; }
-    .tabs { overflow-x: auto; }
-}
-</style>
 {% endblock %}
 
 {% block scripts %}
