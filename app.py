@@ -4,35 +4,17 @@ Aplicación web para gestionar el casamiento de Katherine y Ariel
 19 de Diciembre 2026 - Basílica de Lourdes
 """
 
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, render_template, jsonify, request
 import json
 import os
 import qrcode
 import io
 from datetime import datetime, timedelta
-from werkzeug.utils import secure_filename
-from PIL import Image
 from database import CasamientoDatabase
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-
-# Usar /tmp en producción (Render) o static/uploads en local
-if os.environ.get('RENDER'):
-    app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
-else:
-    app.config['UPLOAD_FOLDER'] = 'static/uploads'
-
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'heic', 'heif'}
-
-# Crear carpetas de uploads si no existen
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails'), exist_ok=True)
 
 db = CasamientoDatabase()
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 # Datos del casamiento
 WEDDING_DATA = {
@@ -380,22 +362,11 @@ def instagram():
     """Página de Instagram y redes sociales"""
     return render_template('instagram.html', wedding=WEDDING_DATA)
 
-@app.route('/fotos')
-def fotos():
-    """Página para subir fotos"""
-    return render_template('fotos.html', wedding=WEDDING_DATA)
-
-@app.route('/galeria')
-def galeria():
-    """Página de galería de fotos"""
-    fotos = db.get_fotos()
-    return render_template('galeria.html', wedding=WEDDING_DATA, fotos=fotos)
-
 @app.route('/qr')
 def qr_code():
-    """Generar código QR para acceder a la página de fotos"""
-    url = request.host_url + 'fotos'
-    
+    """Generar QR apuntando al sitio de invitados"""
+    url = os.environ.get('INVITADOS_URL', request.host_url)
+
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -404,13 +375,13 @@ def qr_code():
     )
     qr.add_data(url)
     qr.make(fit=True)
-    
+
     img = qr.make_image(fill_color="black", back_color="white")
-    
+
     img_io = io.BytesIO()
     img.save(img_io, 'PNG')
     img_io.seek(0)
-    
+
     from flask import send_file
     return send_file(img_io, mimetype='image/png')
 
@@ -418,87 +389,6 @@ def qr_code():
 def qr_page():
     """Página para mostrar el código QR"""
     return render_template('qr.html', wedding=WEDDING_DATA)
-
-@app.route('/api/fotos', methods=['GET'])
-def api_get_fotos():
-    """API para obtener todas las fotos"""
-    fotos = db.get_fotos()
-    return jsonify(fotos)
-
-@app.route('/api/fotos/upload', methods=['POST'])
-def api_upload_foto():
-    """API para subir una foto"""
-    try:
-        if 'foto' not in request.files:
-            return jsonify({'success': False, 'message': 'No se envió ninguna foto'}), 400
-        
-        file = request.files['foto']
-        
-        if file.filename == '':
-            return jsonify({'success': False, 'message': 'No se seleccionó ningún archivo'}), 400
-        
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            nombre_archivo = f"{timestamp}_{filename}"
-            
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], nombre_archivo)
-            file.save(filepath)
-            
-            try:
-                # Comprimir y redimensionar imagen original
-                img = Image.open(filepath)
-                
-                # Redimensionar imagen principal (max 1200px)
-                img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
-                img.save(filepath, optimize=True, quality=85)
-                
-                # Crear thumbnail pequeño
-                img.thumbnail((300, 300), Image.Resampling.LANCZOS)
-                thumbnail_path = os.path.join(app.config['UPLOAD_FOLDER'], 'thumbnails', nombre_archivo)
-                img.save(thumbnail_path, optimize=True, quality=80)
-                thumbnail_rel = f"uploads/thumbnails/{nombre_archivo}"
-            except Exception as e:
-                print(f"Error creando thumbnail: {e}")
-                thumbnail_rel = f"uploads/{nombre_archivo}"
-            
-            subido_por = request.form.get('nombre', 'Invitado')
-            descripcion = request.form.get('descripcion', '')
-            
-            foto_id = db.agregar_foto({
-                'nombre_archivo': nombre_archivo,
-                'nombre_original': file.filename,
-                'ruta': f"uploads/{nombre_archivo}",
-                'thumbnail': thumbnail_rel,
-                'subido_por': subido_por,
-                'descripcion': descripcion
-            })
-            
-            return jsonify({
-                'success': True,
-                'message': 'Foto subida correctamente',
-                'id': foto_id,
-                'filename': nombre_archivo
-            })
-        
-        return jsonify({'success': False, 'message': 'Tipo de archivo no permitido'}), 400
-    
-    except Exception as e:
-        print(f"Error en upload: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'success': False, 'message': f'Error al subir foto: {str(e)}'}), 500
-
-@app.route('/api/fotos/<int:foto_id>', methods=['DELETE'])
-def api_eliminar_foto(foto_id):
-    """API para eliminar una foto"""
-    db.eliminar_foto(foto_id)
-    return jsonify({'success': True, 'message': 'Foto eliminada'})
-
-@app.route('/uploads/<path:filename>')
-def serve_upload(filename):
-    """Servir archivos subidos desde /tmp en producción"""
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     print("=" * 60)

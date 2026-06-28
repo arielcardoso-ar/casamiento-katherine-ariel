@@ -6,170 +6,211 @@
 <div class="container">
     <div class="page-header">
         <h1>👥 Lista de Invitados</h1>
-        <p>Gestión de 50 invitados para el 19 de Diciembre 2026</p>
+        <p>Casamiento Katherine & Ariel — 19 de Diciembre 2026</p>
     </div>
 
+    <!-- Estadísticas -->
     <div class="invitados-summary">
-        <div class="summary-stat">
-            <h3>50</h3>
-            <p>Total Invitados</p>
+        <div class="summary-stat stat-total">
+            <h3 id="stat-total">—</h3>
+            <p>Total</p>
         </div>
-        <div class="summary-stat">
-            <h3>0</h3>
+        <div class="summary-stat stat-confirmado">
+            <h3 id="stat-confirmados">—</h3>
             <p>Confirmados</p>
         </div>
-        <div class="summary-stat">
-            <h3>50</h3>
+        <div class="summary-stat stat-pendiente">
+            <h3 id="stat-pendientes">—</h3>
             <p>Pendientes</p>
         </div>
-        <div class="summary-stat">
-            <h3>0</h3>
+        <div class="summary-stat stat-no">
+            <h3 id="stat-no-asisten">—</h3>
             <p>No Asisten</p>
         </div>
     </div>
 
-    <div class="invitados-actions">
-        <button class="btn btn-primary" onclick="agregarInvitado()">+ Agregar Invitado</button>
-        <button class="btn btn-secondary" onclick="exportarLista()">📥 Exportar Lista</button>
+    <!-- Tabs -->
+    <div class="inv-tabs">
+        <button class="inv-tab active" id="tab-lista"       onclick="switchTab('lista')">📋 Lista</button>
+        <button class="inv-tab"        id="tab-prioridades" onclick="switchTab('prioridades')">⭐ Prioridades</button>
     </div>
 
+    <!-- ── VISTA: LISTA ───────────────────────────────────────────────────── -->
+    <div id="view-lista">
+
+    <!-- Acciones + Filtros -->
+    <div class="invitados-toolbar">
+        <div class="toolbar-left">
+            <button class="btn btn-primary" onclick="abrirModalAgregar()">+ Agregar Invitado</button>
+            <button class="btn btn-secondary" onclick="exportarLista()">📥 Exportar CSV</button>
+        </div>
+        <div class="toolbar-right">
+            <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre..." oninput="filtrarInvitados()">
+            <select id="filterGrupo" onchange="filtrarInvitados()">
+                <option value="">Todos los grupos</option>
+            </select>
+            <select id="filterConfirmacion" onchange="filtrarInvitados()">
+                <option value="">Todos los estados</option>
+                <option value="Confirmado">Confirmados</option>
+                <option value="Pendiente">Pendientes</option>
+                <option value="No Asiste">No Asisten</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tabla -->
     <div class="invitados-table-container">
         <table class="invitados-table">
             <thead>
                 <tr>
-                    <th>Nº</th>
+                    <th>#</th>
                     <th>Nombre Completo</th>
-                    <th>Teléfono</th>
-                    <th>Email</th>
                     <th>Grupo</th>
+                    <th>Teléfono</th>
                     <th>Invitación</th>
                     <th>Confirmación</th>
                     <th>Menú</th>
                     <th>Alergias</th>
                     <th>Mesa</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="invitadosTableBody">
-                <!-- Los invitados se agregarán dinámicamente con JavaScript -->
-                <tr class="empty-row">
-                    <td colspan="10" class="text-center">
-                        <p>No hay invitados agregados aún</p>
-                        <button class="btn btn-primary" onclick="agregarInvitado()">
-                            Agregar Primer Invitado
-                        </button>
-                    </td>
+                <tr>
+                    <td colspan="10" class="text-center loading-row">Cargando invitados...</td>
                 </tr>
             </tbody>
         </table>
+        <div id="noResults" style="display:none;" class="no-results-msg">
+            Sin resultados para la búsqueda actual.
+        </div>
     </div>
 
-    <!-- Distribución por Grupos -->
+    </div><!-- /view-lista -->
+
+    <!-- ── VISTA: PRIORIDADES ────────────────────────────────────────────── -->
+    <div id="view-prioridades" style="display:none;">
+        <p class="prioridades-hint">
+            Arrastrá cada invitado a la columna que corresponda. Los cambios se guardan automáticamente.
+        </p>
+
+        <!-- Pool sin clasificar -->
+        <div class="prioridades-pool-wrap">
+            <h3 class="pool-titulo">📋 Sin clasificar <span id="pool-count" class="pool-badge">0</span></h3>
+            <div class="prioridades-pool" id="pool-sin-clasificar"
+                 ondragover="onDragOver(event)" ondrop="onDrop(event, 'Sin clasificar')">
+            </div>
+        </div>
+
+        <!-- Dos columnas -->
+        <div class="prioridades-cols">
+            <div class="prioridad-col col-esencial"
+                 ondragover="onDragOver(event)" ondrop="onDrop(event, 'Esencial')">
+                <div class="col-header col-header--esencial">
+                    <span class="col-icon">⭐</span>
+                    <div>
+                        <h3>Esenciales</h3>
+                        <p>No pueden faltar</p>
+                    </div>
+                    <span class="col-count" id="count-esencial">0</span>
+                </div>
+                <div class="col-cards" id="cards-esencial"></div>
+            </div>
+
+            <div class="prioridad-col col-prescindible"
+                 ondragover="onDragOver(event)" ondrop="onDrop(event, 'Prescindible')">
+                <div class="col-header col-header--prescindible">
+                    <span class="col-icon">💭</span>
+                    <div>
+                        <h3>Prescindibles</h3>
+                        <p>Si hay lugar</p>
+                    </div>
+                    <span class="col-count" id="count-prescindible">0</span>
+                </div>
+                <div class="col-cards" id="cards-prescindible"></div>
+            </div>
+        </div>
+    </div><!-- /view-prioridades -->
+
+    <!-- Distribución por Grupos (dinámica) -->
     <div class="section">
         <h2 class="section-title">📊 Distribución por Grupos</h2>
-        <div class="grupos-grid">
-            <div class="grupo-card">
-                <h4>Familia Novia</h4>
-                <p class="grupo-count">0 personas</p>
-            </div>
-            <div class="grupo-card">
-                <h4>Familia Novio</h4>
-                <p class="grupo-count">0 personas</p>
-            </div>
-            <div class="grupo-card">
-                <h4>Amigos</h4>
-                <p class="grupo-count">0 personas</p>
-            </div>
-            <div class="grupo-card">
-                <h4>Trabajo</h4>
-                <p class="grupo-count">0 personas</p>
-            </div>
-            <div class="grupo-card">
-                <h4>Otros</h4>
-                <p class="grupo-count">0 personas</p>
-            </div>
+        <div id="gruposGrid" class="grupos-grid">
+            <!-- Se genera dinámicamente -->
         </div>
     </div>
 
     <!-- Distribución de Mesas -->
     <div class="section">
         <h2 class="section-title">🪑 Distribución de Mesas</h2>
-        <p class="section-subtitle">Para 50 personas, recomendamos 6-7 mesas de 8 personas</p>
-        <div class="mesas-grid">
-            <div class="mesa-card">
-                <h4>Mesa 1</h4>
-                <p>0 / 8 personas</p>
-            </div>
-            <div class="mesa-card">
-                <h4>Mesa 2</h4>
-                <p>0 / 8 personas</p>
-            </div>
-            <div class="mesa-card">
-                <h4>Mesa 3</h4>
-                <p>0 / 8 personas</p>
-            </div>
-            <div class="mesa-card">
-                <h4>Mesa 4</h4>
-                <p>0 / 8 personas</p>
-            </div>
-            <div class="mesa-card">
-                <h4>Mesa 5</h4>
-                <p>0 / 8 personas</p>
-            </div>
-            <div class="mesa-card">
-                <h4>Mesa 6</h4>
-                <p>0 / 8 personas</p>
-            </div>
+        <p class="section-subtitle" id="mesasSubtitle">Cargando...</p>
+        <div id="mesasGrid" class="mesas-grid">
+            <!-- Se genera dinámicamente -->
         </div>
-    </div>
-
-    <!-- Notas -->
-    <div class="tips-box">
-        <h3>💡 Consejos para la Lista de Invitados</h3>
-        <ul>
-            <li>Enviar invitaciones con 4-5 meses de anticipación (Agosto 2026)</li>
-            <li>Pedir confirmación hasta Octubre 2026</li>
-            <li>Consultar alergias y restricciones alimentarias</li>
-            <li>Organizar mesas por grupos afines</li>
-            <li>Considerar mesa de niños si hay varios</li>
-            <li>Dejar 2-3 lugares extra por si surgen imprevistos</li>
-        </ul>
     </div>
 </div>
 
-<!-- Modal para agregar invitado -->
+<!-- Modal Agregar / Editar Invitado -->
 <div id="modalInvitado" class="modal" style="display:none;">
     <div class="modal-content">
         <span class="modal-close" onclick="cerrarModal()">&times;</span>
-        <h2>Agregar Invitado</h2>
+        <h2 id="modalTitulo">Agregar Invitado</h2>
         <form id="formInvitado" onsubmit="guardarInvitado(event)">
-            <div class="form-group">
-                <label>Nombre Completo *</label>
-                <input type="text" name="nombre" required>
+            <input type="hidden" id="invitadoId" value="">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" name="nombre" id="inputNombre" required placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label>Grupo *</label>
+                    <select name="grupo" id="inputGrupo" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Familia Kathy">Familia Kathy</option>
+                        <option value="Amigos Kathy">Amigos Kathy</option>
+                        <option value="Familia Ariel">Familia Ariel</option>
+                        <option value="Amigos Ariel">Amigos Ariel</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Teléfono</label>
-                <input type="tel" name="telefono">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" name="telefono" id="inputTelefono" placeholder="Ej: 11-1234-5678">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" id="inputEmail" placeholder="Ej: juan@mail.com">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email">
-            </div>
-            <div class="form-group">
-                <label>Grupo *</label>
-                <select name="grupo" required>
-                    <option value="">Seleccionar...</option>
-                    <option value="Familia Novia">Familia Novia</option>
-                    <option value="Familia Novio">Familia Novio</option>
-                    <option value="Amigos">Amigos</option>
-                    <option value="Trabajo">Trabajo</option>
-                    <option value="Otros">Otros</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Menú</label>
+                    <input type="text" name="menu" id="inputMenu" placeholder="Ej: Clásico, Vegetariano...">
+                </div>
+                <div class="form-group">
+                    <label>Alergias</label>
+                    <input type="text" name="alergias" id="inputAlergias" placeholder="Ej: Mariscos, Gluten...">
+                </div>
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Guardar</button>
                 <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminación -->
+<div id="modalEliminar" class="modal" style="display:none;">
+    <div class="modal-content modal-confirm">
+        <h2>¿Eliminar invitado?</h2>
+        <p id="eliminarNombre" style="color:#666; margin: 0.5rem 0 1.5rem;"></p>
+        <div class="form-actions">
+            <button class="btn btn-danger" onclick="confirmarEliminar()">Eliminar</button>
+            <button class="btn btn-secondary" onclick="cerrarModalEliminar()">Cancelar</button>
+        </div>
     </div>
 </div>
 {% endblock %}

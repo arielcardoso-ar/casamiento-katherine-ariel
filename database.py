@@ -51,9 +51,16 @@ class CasamientoDatabase:
                 menu TEXT,
                 alergias TEXT,
                 mesa INTEGER,
+                prioridad TEXT DEFAULT 'Sin clasificar',
                 actualizado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        # Migración: agregar columna prioridad si no existe
+        try:
+            cursor.execute("ALTER TABLE invitados ADD COLUMN prioridad TEXT DEFAULT 'Sin clasificar'")
+        except Exception:
+            pass
         
         # Tabla de tareas
         cursor.execute('''
@@ -227,7 +234,7 @@ class CasamientoDatabase:
         
         cursor.execute('''
             SELECT id, nombre, telefono, email, grupo, invitacion_enviada,
-                   confirmacion, asiste, menu, alergias, mesa
+                   confirmacion, asiste, menu, alergias, mesa, prioridad
             FROM invitados
             ORDER BY nombre
         ''')
@@ -244,8 +251,8 @@ class CasamientoDatabase:
         
         cursor.execute('''
             INSERT INTO invitados (nombre, telefono, email, grupo, invitacion_enviada,
-                                  confirmacion, asiste, menu, alergias, mesa)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                  confirmacion, asiste, menu, alergias, mesa, prioridad)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             datos['nombre'],
             datos.get('telefono', ''),
@@ -256,7 +263,8 @@ class CasamientoDatabase:
             datos.get('asiste', None),
             datos.get('menu', ''),
             datos.get('alergias', ''),
-            datos.get('mesa', None)
+            datos.get('mesa', None),
+            datos.get('prioridad', 'Sin clasificar')
         ))
         
         invitado_id = cursor.lastrowid
@@ -275,7 +283,7 @@ class CasamientoDatabase:
             UPDATE invitados
             SET nombre = ?, telefono = ?, email = ?, grupo = ?,
                 invitacion_enviada = ?, confirmacion = ?, asiste = ?,
-                menu = ?, alergias = ?, mesa = ?,
+                menu = ?, alergias = ?, mesa = ?, prioridad = ?,
                 actualizado = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (
@@ -289,6 +297,7 @@ class CasamientoDatabase:
             datos.get('menu', ''),
             datos.get('alergias', ''),
             datos.get('mesa', None),
+            datos.get('prioridad', 'Sin clasificar'),
             invitado_id
         ))
         
