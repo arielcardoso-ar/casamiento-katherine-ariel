@@ -33,10 +33,10 @@ WEDDING_DATA = {
     'fecha': '2026-12-19',
     'fecha_texto': '19 de Diciembre de 2026',
     'ceremonia': {
-        'lugar': 'Basílica Nuestra Señora de Lourdes',
-        'direccion': 'Av. La Plata 3757, Santos Lugares, Buenos Aires',
-        'telefono': '011 4757-2130',
-        'web': 'santuariodelourdes.org.ar'
+        'lugar': 'Iglesia Ntra. Sra. de Lourdes',
+        'direccion': 'Flores, Buenos Aires',
+        'telefono': '',
+        'web': ''
     },
     'invitados': 50,
     'presupuesto_total': 5000000
